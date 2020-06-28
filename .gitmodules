@@ -1,0 +1,3 @@
+[submodule "RSWikiTranscriber"]
+	path = RSWikiTranscriber
+	url = https://github.com/1bakedpotato/RSWikiTranscriber.git
