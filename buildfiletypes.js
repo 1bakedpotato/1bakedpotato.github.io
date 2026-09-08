@@ -1,11 +1,11 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./node_modules/json-schema/lib/validate.js":
+/***/ "./node_modules/json-schema/lib/validate.js"
 /*!**************************************************!*\
   !*** ./node_modules/json-schema/lib/validate.js ***!
   \**************************************************/
-/***/ (function(module, exports) {
+(module, exports) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
  * JSONSchema Validator - Validates JavaScript objects using JSON Schemas
@@ -274,13 +274,13 @@ return exports;
 }));
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/constants.ts":
+/***/ "./src/constants.ts"
 /*!**************************!*\
   !*** ./src/constants.ts ***!
   \**************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -289,42 +289,38 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   cacheMajors: () => (/* binding */ cacheMajors),
 /* harmony export */   cacheMapFiles: () => (/* binding */ cacheMapFiles),
 /* harmony export */   internalNameFiles: () => (/* binding */ internalNameFiles),
+/* harmony export */   internalNameFilesWithVarbit: () => (/* binding */ internalNameFilesWithVarbit),
 /* harmony export */   lastClassicBuildnr: () => (/* binding */ lastClassicBuildnr),
 /* harmony export */   lastLegacyBuildnr: () => (/* binding */ lastLegacyBuildnr),
-/* harmony export */   latestBuildNumber: () => (/* binding */ latestBuildNumber)
+/* harmony export */   latestBuildNumber: () => (/* binding */ latestBuildNumber),
+/* harmony export */   vartypeReverseMap: () => (/* binding */ vartypeReverseMap),
+/* harmony export */   vartypes: () => (/* binding */ vartypes)
 /* harmony export */ });
 const cacheMajors = {
     framemaps: 1,
     config: 2,
-    interfaces: 3,
+    components: 3,
     mapsquares: 5,
-    oldmodels: 7,
     sprites: 8,
     clientscript: 12,
-    fontmetricsOld: 13,
     sounds: 14,
-    objects: 16,
+    locs: 16,
     enums: 17,
     npcs: 18,
     items: 19,
     sequences: 20,
     spotanims: 21,
     structs: 22,
+    worldmap: 23,
     quickchat: 24,
     materials: 26,
     particles: 27,
-    worldmap: 23,
+    client_cutscenes: 35,
     music: 40,
+    worldmaprender: 41,
+    maplabellocations: 42,
     models: 47,
     frames: 48,
-    texturesOldPng: 9,
-    texturesOldCompoundPng: 37,
-    textures2015Png: 43,
-    textures2015CompoundPng: 44,
-    textures2015Dds: 45,
-    textures2015CompoundPngMips: 46,
-    textures2015CompoundDds: 50,
-    textures2015PngMips: 51,
     texturesDds: 52,
     texturesPng: 53,
     texturesBmp: 54,
@@ -333,8 +329,20 @@ const cacheMajors = {
     achievements: 57,
     fontmetrics: 58,
     vectorfonts: 59,
+    stylesheets: 60,
     cutscenes: 66,
     filenames: 67,
+    // old stuff
+    oldmodels: 7,
+    texturesOldPng: 9,
+    fontmetricsOld: 13,
+    texturesOldCompoundPng: 37,
+    textures2015Png: 43,
+    textures2015CompoundPng: 44,
+    textures2015Dds: 45,
+    textures2015CompoundPngMips: 46,
+    textures2015CompoundDds: 50,
+    textures2015PngMips: 51,
     index: 255
 };
 const internalNameFiles = {
@@ -350,6 +358,7 @@ const internalNameFiles = {
     interface: 24,
     inv: 25,
     loc: 28,
+    mapelement: 29,
     material: 32,
     model: 34,
     npc: 35,
@@ -373,11 +382,13 @@ const internalNameFiles = {
     stylesheet: 92,
     ui_anim_curve: 96,
     ui_anim: 97,
+    // hardcoded, extracts its values from various var_x files, not a real file in the cache
+    varbit: 1001
 };
 //represents the largest build number that this application is aware off
 //is used as default value when a cache is considered "current"
 //only needs to be updated when backward incompatible code paths are added
-const latestBuildNumber = 940;
+const latestBuildNumber = 950;
 const cacheMapFiles = {
     locations: 0,
     squares: 3,
@@ -387,15 +398,26 @@ const cacheMapFiles = {
 };
 const cacheConfigPages = {
     mapunderlays: 1,
+    // 2: 742 empty files (just one 0x00)
     identityKit: 3,
     mapoverlays: 4,
+    inventories: 5,
+    // 7: 350 empty files
     params: 11,
-    environments: 29,
+    // 18: 2888 empty files
+    skyboxes: 29,
+    // 31: 37 small files which seem to have color and some other data
     animgroups: 32,
+    cursors: 33,
     mapscenes: 34,
+    quests: 35,
     maplabels: 36,
     dbtables: 40,
     dbrows: 41,
+    // 42: 1024 empty files
+    hitmarks: 46,
+    // 48: 19 empty files
+    // 49: 2 empty files
     varplayer: 60,
     varnpc: 61,
     varclient: 62,
@@ -405,14 +427,207 @@ const cacheConfigPages = {
     varclan: 66,
     varclansettings: 67,
     varcampaign: 68,
-    varplayergroup: 75,
     varbits: 69,
+    // 70: 365 empty files
+    headbars: 72,
+    // 73: 45 empty files
+    varplayergroup: 75,
+    // 76: 40 moderately complex files
+    // 80: 24 files only one having one value
+    // 83: 869 complex files, already decoded in config83.jsonc, meaning unclear
     //used before 488 (feb 2008)
     locs_old: 6,
     npcs_old: 9,
     items_old: 10,
     spotanim_old: 13
 };
+const internalNameFilesWithVarbit = new Map([
+    [
+        internalNameFiles.var_player,
+        cacheConfigPages.varplayer
+    ],
+    [
+        internalNameFiles.var_clan,
+        cacheConfigPages.varclan
+    ],
+    [
+        internalNameFiles.var_clan_setting,
+        cacheConfigPages.varclansettings
+    ],
+    [
+        internalNameFiles.var_client,
+        cacheConfigPages.varclient
+    ],
+    [
+        internalNameFiles.var_npc,
+        cacheConfigPages.varnpc
+    ],
+    [
+        internalNameFiles.var_object,
+        cacheConfigPages.varobject
+    ],
+    [
+        internalNameFiles.var_player_group,
+        cacheConfigPages.varplayergroup
+    ]
+]);
+// from runestar cs2-rs3
+const vartypes = {
+    int: 0,
+    boolean: 1,
+    type_2: 2,
+    quest: 3,
+    questhelp: 4,
+    cursor: 5,
+    seq: 6,
+    colour: 7,
+    loc_shape: 8,
+    component: 9,
+    idkit: 10,
+    midi: 11,
+    npc_mode: 12,
+    namedobj: 13,
+    synth: 14,
+    type_15: 15,
+    area: 16,
+    stat: 17,
+    npc_stat: 18,
+    writeinv: 19,
+    mesh: 20,
+    maparea: 21,
+    coordgrid: 22,
+    graphic: 23,
+    chatphrase: 24,
+    fontmetrics: 25,
+    enum: 26,
+    type_27: 27,
+    jingle: 28,
+    chatcat: 29,
+    loc: 30,
+    model: 31,
+    npc: 32,
+    obj: 33,
+    player_uid: 34,
+    type_35: 35,
+    string: 36,
+    spotanim: 37,
+    npc_uid: 38,
+    inv: 39,
+    texture: 40,
+    category: 41,
+    char: 42,
+    laser: 43,
+    bas: 44,
+    type_45: 45,
+    collision_geometry: 46,
+    physics_model: 47,
+    physics_control_modifier: 48,
+    clanhash: 49,
+    coordfine: 50,
+    cutscene: 51,
+    itemcode: 53,
+    type_54: 54,
+    mapsceneicon: 55,
+    clanforumqfc: 56,
+    sound: 57,
+    verify_object: 58,
+    mapelement: 59,
+    categorytype: 60,
+    social_network: 61,
+    hitmark: 62,
+    package: 63,
+    particle_effector: 64,
+    type_65: 65,
+    particle_emitter: 66,
+    plogtype: 67,
+    unsigned_int: 68,
+    skybox: 69,
+    skydecor: 70,
+    hash64: 71,
+    inputtype: 72,
+    struct: 73,
+    dbrow: 74,
+    type_75: 75,
+    type_76: 76,
+    type_77: 77,
+    type_78: 78,
+    type_79: 79,
+    type_80: 80,
+    type_81: 81,
+    type_83: 83,
+    type_84: 84,
+    type_85: 85,
+    type_86: 86,
+    type_87: 87,
+    type_88: 88,
+    gwc_platform: 89,
+    type_90: 90,
+    type_91: 91,
+    type_92: 92,
+    headbar: 93,
+    bug_template: 94,
+    billing_auth_flag: 95,
+    account_feature_flag: 96,
+    interface: 97,
+    toplevelinterface: 98,
+    overlayinterface: 99,
+    clientinterface: 100,
+    movespeed: 101,
+    material: 102,
+    seqgroup: 103,
+    temp_hiscore: 104,
+    temp_hiscore_length_type: 105,
+    temp_hiscore_display_type: 106,
+    temp_hiscore_contribute_result: 107,
+    audiogroup: 108,
+    audiomixbuss: 109,
+    long: 110,
+    crm_channel: 111,
+    http_image: 112,
+    pop_up_display_behaviour: 113,
+    poll: 114,
+    type_115: 115,
+    type_116: 116,
+    pointlight: 117,
+    player_group: 118,
+    player_group_status: 119,
+    player_group_invite_result: 120,
+    player_group_modify_result: 121,
+    player_group_join_or_create_result: 122,
+    player_group_affinity_modify_result: 123,
+    player_group_delta_type: 124,
+    client_type: 125,
+    telemetry_interval: 126,
+    type_127: 127,
+    achievement_or_varbit: 128,
+    type_129: 129,
+    type_130: 130,
+    achievement: 131,
+    stylesheet: 133,
+    type_138: 138,
+    type_200: 200,
+    type_201: 201,
+    type_202: 202,
+    type_203: 203,
+    type_204: 204,
+    type_205: 205,
+    type_206: 206,
+    type_207: 207,
+    type_208: 208,
+    var_reference: 209,
+    var_player: 210,
+    //hardcoded placeholder types
+    //TODO try to remove this, no longer required but still used for unknown subtypes
+    unknown_int: 501,
+    unknown_long: 502,
+    unknown_string: 503,
+    clientscript: 504,
+    scriptsubref: 505
+};
+const vartypeReverseMap = new Map(Object.entries(vartypes).map((q)=>[
+        q[1],
+        q[0]
+    ]));
 const lastLegacyBuildnr = 377;
 //unclear if there ended up being overlap with (public) rs2 since this was 12 years after rs2 release
 //first known rs2 is 254
@@ -420,13 +635,13 @@ const lastLegacyBuildnr = 377;
 const lastClassicBuildnr = 235;
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/jsonschemas.ts":
-/*!****************************!*\
-  !*** ./src/jsonschemas.ts ***!
-  \****************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ "./src/parser/jsonschemas.ts"
+/*!***********************************!*\
+  !*** ./src/parser/jsonschemas.ts ***!
+  \***********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -451,15 +666,22 @@ function parseJsonOrDefault(str, schema, defaultvalue) {
         let v = JSON.parse(str);
         assertSchema(v, schema);
         return v;
-    }
-    catch {
-        return (typeof defaultvalue == "function" ? defaultvalue() : defaultvalue);
+    } catch  {
+        return typeof defaultvalue == "function" ? defaultvalue() : defaultvalue;
     }
 }
-const int = { type: "integer" };
-const number = { type: "number" };
-const string = { type: "string" };
-const boolean = { type: "boolean" };
+const int = {
+    type: "integer"
+};
+const number = {
+    type: "number"
+};
+const string = {
+    type: "string"
+};
+const boolean = {
+    type: "boolean"
+};
 const mapRectSchema = {
     properties: {
         x: int,
@@ -467,12 +689,27 @@ const mapRectSchema = {
         xsize: int,
         zsize: int
     },
-    required: ["x", "z", "xsize", "zsize"]
+    required: [
+        "x",
+        "z",
+        "xsize",
+        "zsize"
+    ]
 };
 const modelModsSchema = {
     properties: {
-        replaceMaterials: { type: "array", minLength: 2, maxLength: 2, items: int },
-        replaceColors: { type: "array", minLength: 2, maxLength: 2, items: int }
+        replaceMaterials: {
+            type: "array",
+            minLength: 2,
+            maxLength: 2,
+            items: int
+        },
+        replaceColors: {
+            type: "array",
+            minLength: 2,
+            maxLength: 2,
+            items: int
+        }
     }
 };
 const simpleModelDefSchema = {
@@ -480,41 +717,67 @@ const simpleModelDefSchema = {
     items: {
         properties: {
             modelid: int,
-            mods: modelModsSchema,
+            mods: modelModsSchema
         },
-        required: ["modelid", "mods"]
+        required: [
+            "modelid",
+            "mods"
+        ]
     }
 };
 const customModelDefSchema = {
     properties: {
-        type: { const: "custom" },
+        type: {
+            const: "custom"
+        },
         modelkey: string,
         name: string,
         simpleModel: simpleModelDefSchema,
         globalMods: modelModsSchema,
         basecomp: string
     },
-    required: ["type", "modelkey", "name", "simplemodel", "globalMods", "basecomp"]
+    required: [
+        "type",
+        "modelkey",
+        "name",
+        "simplemodel",
+        "globalMods",
+        "basecomp"
+    ]
 };
 const scenarioModelSchema = {
     oneOf: [
         {
             properties: {
-                type: { const: "simple" },
+                type: {
+                    const: "simple"
+                },
                 modelkey: string,
                 name: string,
                 simpleModel: simpleModelDefSchema
             },
-            required: ["type", "modelkey", "name", "simplemodel"]
+            required: [
+                "type",
+                "modelkey",
+                "name",
+                "simplemodel"
+            ]
         },
         {
             properties: {
-                type: { const: "map" },
+                type: {
+                    const: "map"
+                },
                 modelkey: string,
                 name: string,
                 mapRect: mapRectSchema
             },
-            required: ["type", "modelkey", "name", "mapRect"]
+            required: [
+                "type",
+                "modelkey",
+                "name",
+                "mapRect"
+            ]
         },
         customModelDefSchema
     ]
@@ -523,38 +786,64 @@ const scenarioActionSchema = {
     oneOf: [
         {
             properties: {
-                type: { const: "location" },
+                type: {
+                    const: "location"
+                },
                 target: int,
                 x: number,
                 z: number,
                 level: int,
                 dy: number,
-                rotation: number,
+                rotation: number
             },
-            required: ["type", "target", "x", "z", "level", "dy"]
+            required: [
+                "type",
+                "target",
+                "x",
+                "z",
+                "level",
+                "dy"
+            ]
         },
         {
             properties: {
-                type: { const: "transform" },
+                type: {
+                    const: "transform"
+                },
                 target: int,
                 flip: boolean,
                 scalex: number,
                 scaley: number,
                 scalez: number
             },
-            required: ["type", "target", "flip", "scalex", "scaley", "scalez"]
+            required: [
+                "type",
+                "target",
+                "flip",
+                "scalex",
+                "scaley",
+                "scalez"
+            ]
         },
         {
             properties: {
-                type: { const: "anim" },
+                type: {
+                    const: "anim"
+                },
                 target: int,
                 animid: int
             },
-            required: ["type", "target", "animid"]
+            required: [
+                "type",
+                "target",
+                "animid"
+            ]
         },
         {
             properties: {
-                type: { const: "animset" },
+                type: {
+                    const: "animset"
+                },
                 target: int,
                 animid: int,
                 anims: {
@@ -562,33 +851,60 @@ const scenarioActionSchema = {
                     additionalProperties: int
                 }
             },
-            required: ["type", "target", "animid", "anims"]
+            required: [
+                "type",
+                "target",
+                "animid",
+                "anims"
+            ]
         },
         {
             properties: {
-                type: { const: "delay" },
-                target: { const: -1 },
+                type: {
+                    const: "delay"
+                },
+                target: {
+                    const: -1
+                },
                 duration: number
             },
-            required: ["type", "target", "duration"]
+            required: [
+                "type",
+                "target",
+                "duration"
+            ]
         },
         {
             properties: {
-                type: { const: "visibility" },
+                type: {
+                    const: "visibility"
+                },
                 target: int,
                 visibility: boolean
             },
-            required: ["type", "target", "visibility"]
+            required: [
+                "type",
+                "target",
+                "visibility"
+            ]
         },
         {
             properties: {
-                type: { const: "scale" },
+                type: {
+                    const: "scale"
+                },
                 target: int,
                 scalex: number,
                 scaley: number,
                 scalez: number
             },
-            required: ["type", "target", "scalex", "scaley", "scalez"]
+            required: [
+                "type",
+                "target",
+                "scalex",
+                "scaley",
+                "scalez"
+            ]
         }
     ]
 };
@@ -613,9 +929,22 @@ const maprenderConfigSchema = {
             default: "full",
             description: "A string representing the the map area to render. Either one of the named presets (main, full, test ...), or one or more chunk ranges. eg: 50.50,20.20-70.70",
             anyOf: [
-                { type: "string", pattern: /^\d+\.\d+(-\d+\.\d+)?(,\d+\.\d+(-\d+\.\d+)?)*$/.source },
-                { type: "string", enum: ["main", "full", "test"] },
-                { type: "string", pattern: /^\w+$/.source },
+                {
+                    type: "string",
+                    pattern: /^\d+\.\d+(-\d+\.\d+)?(,\d+\.\d+(-\d+\.\d+)?)*$/.source
+                },
+                {
+                    type: "string",
+                    enum: [
+                        "main",
+                        "full",
+                        "test"
+                    ]
+                },
+                {
+                    type: "string",
+                    pattern: /^\w+$/.source
+                }
             ]
         },
         noyflip: {
@@ -641,55 +970,111 @@ const maprenderConfigSchema = {
                     name: string,
                     level: number,
                     usegzip: boolean,
-                    subtractlayers: { items: string },
-                    format: { type: "string", enum: ["png", "webp"] },
-                    mipmode: { enum: ["default", "avg"] }
+                    subtractlayers: {
+                        items: string
+                    },
+                    format: {
+                        type: "string",
+                        enum: [
+                            "png",
+                            "webp"
+                        ]
+                    },
+                    mipmode: {
+                        enum: [
+                            "default",
+                            "avg"
+                        ]
+                    }
                 },
-                required: ["mode", "name", "pxpersquare", "level"],
-                oneOf: [{
+                required: [
+                    "mode",
+                    "name",
+                    "pxpersquare",
+                    "level"
+                ],
+                oneOf: [
+                    {
                         properties: {
-                            mode: { enum: ["3d", "minimap", "interactions"] },
+                            mode: {
+                                enum: [
+                                    "3d",
+                                    "minimap",
+                                    "interactions"
+                                ]
+                            },
                             dxdy: number,
                             dzdy: number,
                             hidelocs: boolean,
                             overlaywalls: boolean,
                             overlayicons: boolean
                         },
-                        required: ["mode", "dxdy", "dzdy"]
-                    }, {
+                        required: [
+                            "mode",
+                            "dxdy",
+                            "dzdy"
+                        ]
+                    },
+                    {
                         properties: {
-                            mode: { const: "map" },
+                            mode: {
+                                const: "map"
+                            },
                             wallsonly: boolean,
                             mapicons: boolean,
                             thicklines: boolean
                         },
-                        required: ["mode"]
-                    }, {
+                        required: [
+                            "mode"
+                        ]
+                    },
+                    {
                         properties: {
-                            mode: { const: "height" },
+                            mode: {
+                                const: "height"
+                            },
                             allcorners: boolean
                         },
-                        required: ["mode"]
-                    }, {
+                        required: [
+                            "mode"
+                        ]
+                    },
+                    {
                         properties: {
-                            mode: { enum: ["collision", "locs", "maplabels", "rendermeta"] }
+                            mode: {
+                                enum: [
+                                    "collision",
+                                    "locs",
+                                    "maplabels",
+                                    "rendermeta"
+                                ]
+                            }
                         },
-                        required: ["mode"]
-                    }]
+                        required: [
+                            "mode"
+                        ]
+                    }
+                ]
             }
         }
     },
-    required: ["layers", "tileimgsize", "mapsizex", "mapsizez", "area"]
+    required: [
+        "layers",
+        "tileimgsize",
+        "mapsizex",
+        "mapsizez",
+        "area"
+    ]
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/opcode_reader.ts":
-/*!******************************!*\
-  !*** ./src/opcode_reader.ts ***!
-  \******************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ "./src/parser/opcode_reader.ts"
+/*!*************************************!*\
+  !*** ./src/parser/opcode_reader.ts ***!
+  \*************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -698,24 +1083,57 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   buildReference: () => (/* binding */ buildReference),
 /* harmony export */   getDebug: () => (/* binding */ getDebug)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/constants.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants */ "./src/constants.ts");
 
 const BufferTypes = {
-    buffer: { constr: Buffer, bigEndian: false }, //Buffer typings doesn't have BYTES_PER_ELEMENT
-    hex: { constr: Uint8Array, bigEndian: false }, //used to debug into json file
-    byte: { constr: Int8Array, bigEndian: false },
-    ubyte: { constr: Uint8Array, bigEndian: false },
-    short: { constr: Int16Array, bigEndian: false },
-    ushort: { constr: Uint16Array, bigEndian: false },
-    int: { constr: Int32Array, bigEndian: false },
-    uint: { constr: Uint32Array, bigEndian: false },
-    float: { constr: Float32Array, bigEndian: false },
-    float_be: { constr: Float32Array, bigEndian: true }
+    buffer: {
+        constr: Buffer,
+        bigEndian: false
+    },
+    hex: {
+        constr: Uint8Array,
+        bigEndian: false
+    },
+    byte: {
+        constr: Int8Array,
+        bigEndian: false
+    },
+    ubyte: {
+        constr: Uint8Array,
+        bigEndian: false
+    },
+    short: {
+        constr: Int16Array,
+        bigEndian: false
+    },
+    ushort: {
+        constr: Uint16Array,
+        bigEndian: false
+    },
+    int: {
+        constr: Int32Array,
+        bigEndian: false
+    },
+    uint: {
+        constr: Uint32Array,
+        bigEndian: false
+    },
+    float: {
+        constr: Float32Array,
+        bigEndian: false
+    },
+    float_be: {
+        constr: Float32Array,
+        bigEndian: true
+    }
 };
 var debugdata = null;
 function getDebug(trigger) {
     let ret = debugdata;
-    debugdata = trigger ? { rootstate: null, opcodes: [] } : null;
+    debugdata = trigger ? {
+        rootstate: null,
+        opcodes: []
+    } : null;
     return ret;
 }
 function resolveAlias(typename, parent, typedef) {
@@ -726,38 +1144,35 @@ function resolveAlias(typename, parent, typedef) {
     if (typeof newtype != "string") {
         //TODO this recursion is unchecked
         return buildParser(parent, newtype, typedef);
-    }
-    else if (Object.hasOwn(parserPrimitives, newtype)) {
+    } else if (Object.hasOwn(parserPrimitives, newtype)) {
         return parserPrimitives[newtype];
-    }
-    else {
+    } else {
         return resolveAlias(newtype, parent, typedef);
     }
 }
 function buildParser(parent, chunkdef, typedef) {
-    parent ?? (parent = () => { throw new Error("reference failed to resolve"); });
-    switch (typeof chunkdef) {
+    parent ??= ()=>{
+        throw new Error("reference failed to resolve");
+    };
+    switch(typeof chunkdef){
         case "boolean":
         case "number":
             return literalValueParser(chunkdef);
-        case "string": {
-            if (Object.hasOwn(parserPrimitives, chunkdef)) {
-                return parserPrimitives[chunkdef];
+        case "string":
+            {
+                if (Object.hasOwn(parserPrimitives, chunkdef)) {
+                    return parserPrimitives[chunkdef];
+                } else {
+                    return resolveAlias(chunkdef, parent, typedef);
+                }
             }
-            else {
-                return resolveAlias(chunkdef, parent, typedef);
-            }
-        }
         case "object":
             if (chunkdef == null) {
                 return literalValueParser(null);
-            }
-            else if (!Array.isArray(chunkdef)) {
+            } else if (!Array.isArray(chunkdef)) {
                 return opcodesParser(chunkdef, parent, typedef);
-            }
-            else {
-                if (chunkdef.length < 1)
-                    throw new Error(`'read' variables must either be a valid type-defining string, an array of type-defining strings / objects, or a valid type-defining object: ${JSON.stringify(chunkdef)}`);
+            } else {
+                if (chunkdef.length < 1) throw new Error(`'read' variables must either be a valid type-defining string, an array of type-defining strings / objects, or a valid type-defining object: ${JSON.stringify(chunkdef)}`);
                 let args = chunkdef.slice(1);
                 if (parserFunctions[chunkdef[0]]) {
                     return parserFunctions[chunkdef[0]](args, parent, typedef);
@@ -769,15 +1184,17 @@ function buildParser(parent, chunkdef, typedef) {
 }
 function opcodesParser(chunkdef, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let r = {};
-            let hidden = { $opcode: 0 };
+            let hidden = {
+                $opcode: 0
+            };
             state.stack.push(r);
             state.hiddenstack.push(hidden);
             if (debugdata && !debugdata.rootstate) {
                 debugdata.rootstate = r;
             }
-            while (true) {
+            while(true){
                 if (state.scan == state.endoffset) {
                     if (!hasexplicitnull) {
                         // throw new Error("ended reading opcode struct at end of file without 0x00 opcode");
@@ -792,7 +1209,11 @@ function opcodesParser(chunkdef, parent, typedef) {
                 }
                 let parser = map.get(opt);
                 if (debugdata) {
-                    debugdata.opcodes.push({ op: (parser ? parser.key : `_0x${opt.toString(16)}_`), index: state.scan - 1, stacksize: state.stack.length });
+                    debugdata.opcodes.push({
+                        op: parser ? parser.key : `_0x${opt.toString(16)}_`,
+                        index: state.scan - 1,
+                        stacksize: state.stack.length
+                    });
                 }
                 if (!parser) {
                     throw new Error("unknown chunk 0x" + opt.toString(16).toUpperCase());
@@ -803,13 +1224,13 @@ function opcodesParser(chunkdef, parent, typedef) {
             state.hiddenstack.pop();
             return r;
         },
-        write(state, value) {
+        write (state, value) {
             if (typeof value != "object" || !value) {
                 throw new Error("oject expected");
             }
             state.stack.push(value);
             state.hiddenstack.push({});
-            for (let key in value) {
+            for(let key in value){
                 if (key.startsWith("$")) {
                     continue;
                 }
@@ -826,30 +1247,42 @@ function opcodesParser(chunkdef, parent, typedef) {
             state.stack.pop();
             state.hiddenstack.pop();
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             let r = "{\n";
             let newindent = indent + "\t";
-            for (let val of map.values()) {
+            for (let val of map.values()){
                 r += newindent + val.key + "?: " + val.parser.getTypescriptType(newindent) + " | null\n";
             }
             r += indent + "}";
             return r;
         },
-        getJsonSchema() {
+        getJsonSchema () {
+            let propschema = {};
+            for (let prop of map.values()){
+                if (prop.key.startsWith("$")) {
+                    continue;
+                }
+                propschema[prop.key] = {
+                    oneOf: [
+                        prop.parser.getJsonSchema(),
+                        {
+                            type: "null"
+                        }
+                    ]
+                };
+                propschema[prop.key]["x-rsmv-type"] = prop.rstype;
+            }
             return {
                 type: "object",
-                properties: Object.fromEntries([...map.values()]
-                    .filter(prop => !prop.key.startsWith("$"))
-                    .map((prop) => {
-                    return [prop.key, { oneOf: [prop.parser.getJsonSchema(), { type: "null" }] }];
-                }))
+                properties: propschema,
+                "x-rsmv-type": roottype
             };
         }
     };
-    let resolveReference = function (targetprop, name, childresolve) {
+    let resolveReference = function(targetprop, name, childresolve) {
         let result = {
             stackdepth: childresolve.stackdepth + 1,
-            resolve(v, oldvalue) {
+            resolve (v, oldvalue) {
                 if (typeof v != "object" || !v) {
                     throw new Error("object expected");
                 }
@@ -858,19 +1291,22 @@ function opcodesParser(chunkdef, parent, typedef) {
             }
         };
         if (name == "$opcode" || Object.prototype.hasOwnProperty.call(opts, name)) {
-            refs[name] ?? (refs[name] = []);
+            refs[name] ??= [];
             refs[name].push(result);
             return result;
-        }
-        else {
+        } else {
             return buildReference(name, parent, result);
         }
     };
     let refs = {};
-    let opcodetype = buildParser(null, (chunkdef["$opcode"] ?? "unsigned byte"), typedef);
+    let opcodetype = buildParser(null, chunkdef["$opcode"] ?? "unsigned byte", typedef);
     let opts = {};
-    for (let key in chunkdef) {
+    let roottype = "";
+    for(let key in chunkdef){
         if (key.startsWith("$")) {
+            if (key == "$type") {
+                roottype = chunkdef[key];
+            }
             continue;
         }
         let op = chunkdef[key];
@@ -881,71 +1317,104 @@ function opcodesParser(chunkdef, parent, typedef) {
         if (typeof opname != "string") {
             throw new Error("op name expected");
         }
+        let optype = op["type"] ?? "";
+        if (typeof optype != "string") {
+            throw new Error("op type expected");
+        }
         if (opts[opname]) {
             throw new Error("duplicate opcode key " + opname);
         }
         opts[opname] = {
             op: parseInt(key),
-            parser: buildParser(resolveReference.bind(null, key), op["read"], typedef)
+            parser: buildParser(resolveReference.bind(null, key), op["read"], typedef),
+            rstype: optype
         };
     }
     let map = new Map();
-    for (let key in opts) {
+    for(let key in opts){
         let opt = opts[key];
-        map.set(opt.op, { key: key, parser: opt.parser });
+        map.set(opt.op, {
+            key: key,
+            parser: opt.parser,
+            rstype: opt.rstype
+        });
     }
     let hasexplicitnull = !!map.get(0);
     return r;
 }
-function tuppleParser(args, parent, typedef) {
-    let r = {
-        read(state) {
-            let r = [];
-            for (let prop of props) {
-                let v = prop.read(state);
-                r.push(v);
-            }
-            return r;
-        },
-        write(state, value) {
-            if (!Array.isArray(value)) {
-                throw new Error("array expected");
-            }
-            for (let [i, prop] of props.entries()) {
-                prop.write(state, value[i]);
-            }
-        },
-        getTypescriptType(indent) {
-            let r = "[\n";
-            let newindent = indent + "\t";
-            for (let prop of props) {
-                r += newindent + prop.getTypescriptType(newindent) + ",\n";
-            }
-            r += indent + "]";
-            return r;
-        },
-        getJsonSchema() {
-            return {
-                type: "array",
-                items: Object.entries(props).map(([k, v]) => v.getJsonSchema()),
-                minItems: Object.keys(props).length,
-                maxItems: Object.keys(props).length
-            };
-        }
-    };
-    const resolveReference = function (index, name, child) {
-        return buildReference(name, parent, {
-            stackdepth: child.stackdepth,
-            resolve(v, old) {
-                if (!Array.isArray(v)) {
-                    throw new Error("Array expected");
+function tupleParserFactory(istyped) {
+    return (args, parent, typedef)=>{
+        let r = {
+            read (state) {
+                let r = [];
+                for (let prop of props){
+                    let v = prop.read(state);
+                    r.push(v);
                 }
-                return child.resolve(v[index], old);
+                return r;
+            },
+            write (state, value) {
+                if (!Array.isArray(value)) {
+                    throw new Error("array expected");
+                }
+                for (let [i, prop] of props.entries()){
+                    prop.write(state, value[i]);
+                }
+            },
+            getTypescriptType (indent) {
+                let r = "[\n";
+                let newindent = indent + "\t";
+                for (let prop of props){
+                    r += newindent + prop.getTypescriptType(newindent) + ",\n";
+                }
+                r += indent + "]";
+                return r;
+            },
+            getJsonSchema () {
+                let items = props.map((prop, i)=>{
+                    let res = prop.getJsonSchema();
+                    if (istyped) {
+                        res["x-rsmv-type"] = proptypes[i];
+                    }
+                    return res;
+                });
+                return {
+                    type: "array",
+                    items: items,
+                    minItems: Object.keys(props).length,
+                    maxItems: Object.keys(props).length
+                };
             }
-        });
+        };
+        const resolveReference = function(index, name, child) {
+            return buildReference(name, parent, {
+                stackdepth: child.stackdepth,
+                resolve (v, old) {
+                    if (!Array.isArray(v)) {
+                        throw new Error("Array expected");
+                    }
+                    return child.resolve(v[index], old);
+                }
+            });
+        };
+        let props = [];
+        let proptypes = [];
+        for (let arg of args){
+            let parsearg = null;
+            let type = "";
+            if (istyped) {
+                if (!Array.isArray(arg) || arg.length != 2) {
+                    throw new Error("typed tuple args should be [type, vartype]");
+                }
+                [parsearg, type] = arg;
+            } else {
+                parsearg = arg;
+            }
+            props.push(buildParser(resolveReference.bind(null, props.length), parsearg, typedef));
+            proptypes.push(type);
+        }
+        return r;
     };
-    let props = args.map((d, i) => buildParser(resolveReference.bind(null, i), d, typedef));
-    return r;
 }
 function buildReference(name, container, startingpoint) {
     if (!container) {
@@ -954,183 +1423,207 @@ function buildReference(name, container, startingpoint) {
     return container(name, startingpoint);
 }
 function refgetter(refparent, propname, resolve) {
-    let final = buildReference(propname, refparent, { stackdepth: 0, resolve });
+    let final = buildReference(propname, refparent, {
+        stackdepth: 0,
+        resolve
+    });
     let depth = final.stackdepth;
     let hidden = propname.startsWith("$");
     return {
-        read(state) {
-            let stack = (hidden ? state.hiddenstack : state.stack);
+        read (state) {
+            let stack = hidden ? state.hiddenstack : state.stack;
             return stack[stack.length - depth][propname];
         },
-        write(state, newvalue) {
+        write (state, newvalue) {
             if (state.isWrite && !hidden) {
                 throw new Error(`can update ref values in write mode when they are hidden (prefixed with $) in ${propname}`);
             }
-            let stack = (hidden ? state.hiddenstack : state.stack);
+            let stack = hidden ? state.hiddenstack : state.stack;
             stack[stack.length - depth][propname] = newvalue;
         }
     };
 }
-function structParser(args, parent, typedef) {
-    let refs = {};
-    let r = {
-        read(state) {
-            let r = {};
-            let hidden = {};
-            state.stack.push(r);
-            state.hiddenstack.push(hidden);
-            if (debugdata && !debugdata.rootstate) {
-                debugdata.rootstate = r;
-            }
-            for (let key of keys) {
-                if (debugdata) {
-                    debugdata.opcodes.push({ op: key, index: state.scan, stacksize: state.stack.length });
+function structParserFactory(ismini) {
+    return function structParser(args, parent, typedef) {
+        let refs = {};
+        let r = {
+            read (state) {
+                let r = {};
+                let hidden = {};
+                state.stack.push(r);
+                state.hiddenstack.push(hidden);
+                if (debugdata && !debugdata.rootstate) {
+                    debugdata.rootstate = r;
                 }
-                let v = props[key].read(state);
-                if (v !== undefined) {
-                    if (key[0] == "$") {
-                        hidden[key] = v;
-                    }
-                    else {
-                        r[key] = v;
-                    }
+                if (debugdata && ismini) {
+                    debugdata.opcodes.push({
+                        op: "struct",
+                        index: state.scan,
+                        stacksize: state.stack.length
+                    });
                 }
-            }
-            state.stack.pop();
-            state.hiddenstack.pop();
-            return r;
-        },
-        write(state, value) {
-            if (typeof value != "object" || !value) {
-                throw new Error("object expected");
-            }
-            let hiddenvalue = {};
-            state.stack.push(value);
-            state.hiddenstack.push(hiddenvalue);
-            for (let key of keys) {
-                let propvalue = value[key];
-                let prop = props[key];
-                if (key.startsWith("$")) {
-                    if (prop.readConst != undefined) {
-                        propvalue = prop.readConst(state);
+                for (let key of keys){
+                    if (debugdata && !ismini) {
+                        debugdata.opcodes.push({
+                            op: key,
+                            index: state.scan,
+                            stacksize: state.stack.length
+                        });
                     }
-                    else {
-                        let refarray = refs[key];
-                        if (!refarray) {
-                            throw new Error("cannot write hidden values if they are not constant or not referenced");
-                        }
-                        propvalue ?? (propvalue = 0);
-                        for (let ref of refarray) {
-                            propvalue = ref.resolve(value, propvalue);
+                    let v = props[key].read(state);
+                    if (v !== undefined) {
+                        if (key[0] == "$") {
+                            hidden[key] = v;
+                        } else {
+                            r[key] = v;
                         }
                     }
-                    hiddenvalue[key] = propvalue;
                 }
-                prop.write(state, propvalue);
-            }
-            state.stack.pop();
-            state.hiddenstack.pop();
-        },
-        getTypescriptType(indent) {
-            let r = "{\n";
-            let newindent = indent + "\t";
-            for (let key of keys) {
-                if (key[0] == "$") {
-                    continue;
-                }
-                r += newindent + key + ": " + props[key].getTypescriptType(newindent) + ",\n";
-            }
-            r += indent + "}";
-            return r;
-        },
-        getJsonSchema() {
-            return {
-                type: "object",
-                properties: Object.fromEntries([...Object.entries(props)]
-                    .filter(([key]) => !key.startsWith("$"))
-                    .map(([key, prop]) => [key, prop.getJsonSchema()])),
-                required: keys.filter(k => !k.startsWith("$"))
-            };
-        }
-    };
-    let resolveReference = function (targetprop, name, childresolve) {
-        let result = {
-            stackdepth: childresolve.stackdepth + 1,
-            resolve(v, oldvalue) {
-                if (typeof v != "object" || !v) {
+                state.stack.pop();
+                state.hiddenstack.pop();
+                return r;
+            },
+            write (state, value) {
+                if (typeof value != "object" || !value) {
                     throw new Error("object expected");
                 }
-                let res = v[targetprop];
-                return childresolve.resolve(res, oldvalue);
+                let hiddenvalue = {};
+                state.stack.push(value);
+                state.hiddenstack.push(hiddenvalue);
+                for (let key of keys){
+                    let propvalue = value[key];
+                    let prop = props[key];
+                    if (key.startsWith("$")) {
+                        if (prop.readConst != undefined) {
+                            propvalue = prop.readConst(state);
+                        } else {
+                            let refarray = refs[key];
+                            if (!refarray) {
+                                throw new Error("cannot write hidden values if they are not constant or not referenced");
+                            }
+                            propvalue ??= 0;
+                            for (let ref of refarray){
+                                propvalue = ref.resolve(value, propvalue);
+                            }
+                        }
+                        hiddenvalue[key] = propvalue;
+                    }
+                    prop.write(state, propvalue);
+                }
+                state.stack.pop();
+                state.hiddenstack.pop();
+            },
+            getTypescriptType (indent) {
+                let r = "{\n";
+                let newindent = indent + "\t";
+                for (let key of keys){
+                    if (key[0] == "$") {
+                        continue;
+                    }
+                    r += newindent + key + ": " + props[key].getTypescriptType(newindent) + ",\n";
+                }
+                r += indent + "}";
+                return r;
+            },
+            getJsonSchema () {
+                let propschema = {};
+                for(let prop in props){
+                    if (prop.startsWith("$")) {
+                        continue;
+                    }
+                    propschema[prop] = props[prop].getJsonSchema();
+                    let proptype = proptypes[prop];
+                    if (proptype) {
+                        propschema[prop]["x-rsmv-type"] = proptype;
+                    }
+                }
+                return {
+                    type: "object",
+                    properties: propschema,
+                    required: Object.keys(propschema)
+                };
             }
         };
-        if (Object.prototype.hasOwnProperty.call(props, name)) {
-            refs[name] ?? (refs[name] = []);
-            refs[name].push(result);
-            return result;
+        let resolveReference = function(targetprop, name, childresolve) {
+            let result = {
+                stackdepth: childresolve.stackdepth + 1,
+                resolve (v, oldvalue) {
+                    if (typeof v != "object" || !v) {
+                        throw new Error("object expected");
+                    }
+                    let res = v[targetprop];
+                    return childresolve.resolve(res, oldvalue);
+                }
+            };
+            if (Object.prototype.hasOwnProperty.call(props, name)) {
+                refs[name] ??= [];
+                refs[name].push(result);
+                return result;
+            } else {
+                return buildReference(name, parent, result);
+            }
+        };
+        let props = {};
+        let proptypes = {};
+        for (let propdef of args){
+            if (!Array.isArray(propdef) || propdef.length != 2 && propdef.length != 3) {
+                throw new Error("each struct args should be a [name,type] pair");
+            }
+            if (typeof propdef[0] != "string") {
+                throw new Error("prop name should be string");
+            }
+            if (props[propdef[0]]) {
+                throw new Error("duplicate struct prop " + propdef[0]);
+            }
+            props[propdef[0]] = buildParser(resolveReference.bind(null, propdef[0]), propdef[1], typedef);
+            proptypes[propdef[0]] = propdef[2] ?? "";
         }
-        else {
-            return buildReference(name, parent, result);
-        }
+        let keys = Object.keys(props);
+        return r;
     };
-    let props = {};
-    for (let propdef of args) {
-        if (!Array.isArray(propdef) || propdef.length != 2) {
-            throw new Error("each struct args should be a [name,type] pair");
-        }
-        if (typeof propdef[0] != "string") {
-            throw new Error("prop name should be string");
-        }
-        if (props[propdef[0]]) {
-            throw new Error("duplicate struct prop " + propdef[0]);
-        }
-        props[propdef[0]] = buildParser(resolveReference.bind(null, propdef[0]), propdef[1], typedef);
-    }
-    let keys = Object.keys(props);
-    return r;
 }
 function optParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let matchindex = condchecker.match(state);
             if (matchindex == -1) {
                 return null;
             }
             return type.read(state);
         },
-        write(state, value) {
+        write (state, value) {
             if (value != null) {
                 return type.write(state, value);
             }
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             return type.getTypescriptType(indent) + " | null";
         },
-        getJsonSchema() {
+        getJsonSchema () {
             return {
                 oneOf: [
                     type.getJsonSchema(),
-                    { type: "null" }
+                    {
+                        type: "null"
+                    }
                 ]
             };
         }
     };
-    let resolveReference = function (name, child) {
+    let resolveReference = function(name, child) {
         return buildReference(name, parent, {
             stackdepth: child.stackdepth,
-            resolve(v, old) {
-                return (v != null ? child.resolve(v, old) : old);
+            resolve (v, old) {
+                return v != null ? child.resolve(v, old) : old;
             }
         });
     };
-    if (args.length < 2)
-        throw new Error(`2 arguments exptected for proprety with type opt`);
+    if (args.length < 2) throw new Error(`2 arguments exptected for proprety with type opt`);
     let arg1 = args[0];
     let condstr = "";
     if (typeof arg1 == "string") {
         condstr = arg1;
-    }
-    else {
+    } else {
         let condvar;
         let condvalue;
         let cmpmode = "eq";
@@ -1141,8 +1634,7 @@ function optParser(args, parent, typedef) {
             condvar = arg1[0];
             cmpmode = arg1[2] ?? "eq";
             condvalue = arg1[1];
-        }
-        else {
+        } else {
             if (typeof arg1 != "number") {
                 throw new Error("");
             }
@@ -1165,22 +1657,28 @@ function optParser(args, parent, typedef) {
         }
         condstr = `${condvar}${mapped}${condvalue}`;
     }
-    let condchecker = conditionParser(resolveReference, [condstr], v => (v == null ? -1 : 0));
+    let condchecker = conditionParser(resolveReference, [
+        condstr
+    ], (v)=>v == null ? -1 : 0);
     let type = buildParser(resolveReference, args[1], typedef);
     return r;
 }
 function chunkedArrayParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let len = lengthtype.read(state);
             let r = [];
             let hiddenprops = [];
-            for (let chunkindex = 0; chunkindex < chunktypes.length; chunkindex++) {
+            for(let chunkindex = 0; chunkindex < chunktypes.length; chunkindex++){
                 let proptype = chunktypes[chunkindex];
                 if (debugdata) {
-                    debugdata.opcodes.push({ op: Object.keys(proptype).join(), index: state.scan, stacksize: state.stack.length });
+                    debugdata.opcodes.push({
+                        op: Object.keys(proptype).join(),
+                        index: state.scan,
+                        stacksize: state.stack.length
+                    });
                 }
-                for (let i = 0; i < len; i++) {
+                for(let i = 0; i < len; i++){
                     let hidden;
                     let obj;
                     if (chunkindex == 0) {
@@ -1188,20 +1686,18 @@ function chunkedArrayParser(args, parent, typedef) {
                         r.push(obj);
                         hidden = {};
                         hiddenprops.push(hidden);
-                    }
-                    else {
+                    } else {
                         obj = r[i];
                         hidden = hiddenprops[i];
                     }
                     //TODO check if we can save speed by manually overwriting stack[length-1] instead of pop->push
                     state.stack.push(obj);
                     state.hiddenstack.push(hidden);
-                    for (let key in proptype) {
+                    for(let key in proptype){
                         let value = proptype[key].read(state);
                         if (key.startsWith("$")) {
                             hidden[key] = value;
-                        }
-                        else {
+                        } else {
                             obj[key] = value;
                         }
                     }
@@ -1211,36 +1707,35 @@ function chunkedArrayParser(args, parent, typedef) {
             }
             return r;
         },
-        write(state, v) {
+        write (state, v) {
             if (!Array.isArray(v)) {
                 throw new Error("array expected");
             }
             lengthtype.write(state, v.length);
             let hiddenprops = [];
-            for (let chunkindex = 0; chunkindex < chunktypes.length; chunkindex++) {
+            for(let chunkindex = 0; chunkindex < chunktypes.length; chunkindex++){
                 let proptype = chunktypes[chunkindex];
-                for (let i = 0; i < v.length; i++) {
+                for(let i = 0; i < v.length; i++){
                     let entry = v[i];
-                    let hiddenvalue = (chunkindex == 0 ? (hiddenprops[i] = {}) : hiddenprops[i]);
+                    let hiddenvalue = chunkindex == 0 ? hiddenprops[i] = {} : hiddenprops[i];
                     state.stack.push(entry);
                     state.hiddenstack.push(hiddenvalue);
                     if (typeof entry != "object" || !entry) {
                         throw new Error("object expected");
                     }
-                    for (let key in proptype) {
+                    for(let key in proptype){
                         let prop = proptype[key];
                         let propvalue = entry[key];
                         if (key.startsWith("$")) {
                             if (prop.readConst != undefined) {
                                 propvalue = prop.readConst(state);
-                            }
-                            else {
+                            } else {
                                 let refarray = refs[key];
                                 if (!refarray) {
                                     throw new Error("cannot write hidden values if they are not constant or not referenced");
                                 }
-                                propvalue ?? (propvalue = 0);
-                                for (let ref of refarray) {
+                                propvalue ??= 0;
+                                for (let ref of refarray){
                                     propvalue = ref.resolve(entry, propvalue);
                                 }
                             }
@@ -1253,10 +1748,10 @@ function chunkedArrayParser(args, parent, typedef) {
                 }
             }
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             let r = "{\n";
             let newindent = indent + "\t";
-            for (let [key, prop] of Object.entries(fullobj)) {
+            for (let [key, prop] of Object.entries(fullobj)){
                 if (key[0] == "$") {
                     continue;
                 }
@@ -1265,23 +1760,37 @@ function chunkedArrayParser(args, parent, typedef) {
             r += indent + "}[]";
             return r;
         },
-        getJsonSchema() {
+        getJsonSchema () {
+            let propschema = {};
+            for(let prop in fullobj){
+                if (prop.startsWith("$")) {
+                    continue;
+                }
+                propschema[prop] = fullobj[prop].getJsonSchema();
+                let proptype = proptypes[prop];
+                if (proptype) {
+                    propschema[prop]["x-rsmv-type"] = proptype;
+                }
+            }
             return {
                 type: "array",
                 items: {
                     type: "object",
-                    properties: Object.fromEntries([...Object.entries(fullobj)]
-                        .filter(([key]) => !key.startsWith("$"))
-                        .map(([key, prop]) => [key, prop.getJsonSchema()])),
-                    required: keys.filter(k => !k.startsWith("$"))
+                    properties: Object.fromEntries([
+                        ...Object.entries(fullobj)
+                    ].filter(([key])=>!key.startsWith("$")).map(([key, prop])=>[
+                            key,
+                            prop.getJsonSchema()
+                        ])),
+                    required: keys.filter((k)=>!k.startsWith("$"))
                 }
             };
         }
     };
-    const resolveLength = function (prop, childresolve) {
+    const resolveLength = function(prop, childresolve) {
         return buildReference(prop, parent, {
             stackdepth: childresolve.stackdepth,
-            resolve(v, old) {
+            resolve (v, old) {
                 if (!Array.isArray(v)) {
                     throw new Error("array expected");
                 }
@@ -1289,10 +1798,10 @@ function chunkedArrayParser(args, parent, typedef) {
             }
         });
     };
-    const resolveReference = function (targetprop, name, childresolve) {
+    const resolveReference = function(targetprop, name, childresolve) {
         let result = {
             stackdepth: childresolve.stackdepth + 1,
-            resolve(v, oldvalue) {
+            resolve (v, oldvalue) {
                 if (typeof v != "object" || !v) {
                     throw new Error("object expected");
                 }
@@ -1301,11 +1810,10 @@ function chunkedArrayParser(args, parent, typedef) {
             }
         };
         if (Object.prototype.hasOwnProperty.call(fullobj, name)) {
-            refs[name] ?? (refs[name] = []);
+            refs[name] ??= [];
             refs[name].push(result);
             return result;
-        }
-        else {
+        } else {
             return buildReference(name, parent, result);
         }
     };
@@ -1314,19 +1822,21 @@ function chunkedArrayParser(args, parent, typedef) {
     let refs = {};
     let fullobj = {};
     let chunktypes = [];
-    for (let chunk of rawchunks) {
+    let proptypes = {};
+    for (let chunk of rawchunks){
         if (!Array.isArray(chunk)) {
             throw new Error("each argument for composed chunk should be an array");
         }
         let group = {};
         chunktypes.push(group);
-        for (let propdef of chunk) {
-            if (!Array.isArray(propdef) || propdef.length != 2 || typeof propdef[0] != "string") {
-                throw new Error("each composedchunk should be a [name,type] pair");
+        for (let propdef of chunk){
+            if (!Array.isArray(propdef) || propdef.length != 2 && propdef.length != 3 || typeof propdef[0] != "string") {
+                throw new Error("each composedchunk should be a [name,type,type?] pair");
             }
             let p = buildParser(resolveReference.bind(null, propdef[0]), propdef[1], typedef);
             group[propdef[0]] = p;
             fullobj[propdef[0]] = p;
+            proptypes[propdef[0]] = propdef[2] ?? "";
         }
     }
     let keys = chunktypes.flatMap(Object.keys);
@@ -1336,14 +1846,13 @@ function bufferParserValue(value, type, scalartype) {
     if (typeof value == "string") {
         if (scalartype == "hex") {
             return Buffer.from(value, "hex");
-        }
-        else {
+        } else {
             //accept json-ified version of our data as well
             let m = value.match(/^buffer ([\w\[\]]+){([\d,\-\.]*)}/);
             if (!m) {
                 throw new Error("invalid arraybuffer string");
             }
-            return new type.constr(m[2].split(",").map(q => +q));
+            return new type.constr(m[2].split(",").map((q)=>+q));
         }
     }
     if (!(value instanceof type.constr)) {
@@ -1353,17 +1862,15 @@ function bufferParserValue(value, type, scalartype) {
 }
 function flipBufferEndianness(bytes, bytesPerElement) {
     if (bytesPerElement == 1) {
-        //noop
-    }
-    else if (bytesPerElement == 2) {
-        for (let i = 0; i < bytes.length; i += 2) {
+    //noop
+    } else if (bytesPerElement == 2) {
+        for(let i = 0; i < bytes.length; i += 2){
             let a = bytes[i];
             bytes[i] = bytes[i + 1];
             bytes[i + 1] = a;
         }
-    }
-    else if (bytesPerElement == 4) {
-        for (let i = 0; i < bytes.length; i += 4) {
+    } else if (bytesPerElement == 4) {
+        for(let i = 0; i < bytes.length; i += 4){
             let a = bytes[i];
             let b = bytes[i + 1];
             bytes[i] = bytes[i + 3];
@@ -1371,14 +1878,13 @@ function flipBufferEndianness(bytes, bytesPerElement) {
             bytes[i + 2] = b;
             bytes[i + 3] = a;
         }
-    }
-    else {
+    } else {
         throw new Error("unsupported BYTES_PER_ELEMENT " + bytesPerElement);
     }
 }
 function bufferParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let len = lengthtype.read(state);
             let bytelen = len * vectorLength * type.constr.BYTES_PER_ELEMENT;
             let backing = new ArrayBuffer(bytelen);
@@ -1391,19 +1897,28 @@ function bufferParser(args, parent, typedef) {
             if (type.bigEndian) {
                 flipBufferEndianness(bytes, type.constr.BYTES_PER_ELEMENT);
             }
-            let array = (scalartype == "buffer" ? bytes : new type.constr(backing));
+            let array = scalartype == "buffer" ? bytes : new type.constr(backing);
             if (scalartype == "hex") {
-                array.toJSON = () => bytes.toString("hex");
-            }
-            else if (state.args.keepBufferJson === true) {
-                array.toJSON = () => `buffer ${scalartype}${vectorLength != 1 ? `[${vectorLength}]` : ""}[${len}]`;
-            }
-            else {
-                array.toJSON = () => `buffer ${scalartype}${vectorLength != 1 ? `[${vectorLength}]` : ""}[]{${[...array].join(",")}}`;
+                Object.defineProperty(array, "toJSON", {
+                    value: ()=>bytes.toString("hex"),
+                    enumerable: false
+                });
+            } else if (state.args.keepBufferJson === true) {
+                Object.defineProperty(array, "toJSON", {
+                    value: ()=>`buffer ${scalartype}${vectorLength != 1 ? `[${vectorLength}]` : ""}[${len}]`,
+                    enumerable: false
+                });
+            } else {
+                Object.defineProperty(array, "toJSON", {
+                    value: ()=>`buffer ${scalartype}${vectorLength != 1 ? `[${vectorLength}]` : ""}[]{${[
+                            ...array
+                        ].join(",")}}`,
+                    enumerable: false
+                });
             }
             return array;
         },
-        write(state, rawvalue) {
+        write (state, rawvalue) {
             let value = bufferParserValue(rawvalue, type, scalartype);
             if (value.length % vectorLength != 0) {
                 throw new Error("araybuffer is not integer multiple of vectorlength");
@@ -1416,24 +1931,25 @@ function bufferParser(args, parent, typedef) {
             state.buffer.set(bytes, state.scan);
             state.scan += bytes.byteLength;
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             return type.constr.name;
         },
-        getJsonSchema() {
-            return { type: "string" };
+        getJsonSchema () {
+            return {
+                type: "string"
+            };
         }
     };
-    const resolveLengthReference = function (name, child) {
+    const resolveLengthReference = function(name, child) {
         return buildReference(name, parent, {
             stackdepth: child.stackdepth,
-            resolve(rawvalue, old) {
+            resolve (rawvalue, old) {
                 let value = bufferParserValue(rawvalue, type, scalartype);
                 return child.resolve(value.length / vectorLength, old);
             }
         });
     };
-    if (args.length < 1)
-        throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
+    if (args.length < 1) throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
     let typestring = args[1] ?? "buffer";
     let lenarg = args[2] ?? 1;
     if (typeof typestring != "string" || !Object.hasOwn(BufferTypes, typestring)) {
@@ -1450,37 +1966,55 @@ function bufferParser(args, parent, typedef) {
 }
 function arrayParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let len = lengthtype.read(state);
+            let ctx = {
+                $index: 0,
+                $length: len
+            };
+            state.hiddenstack.push(ctx);
+            state.stack.push({});
             let r = [];
-            for (let i = 0; i < len; i++) {
+            for(let i = 0; i < len; i++){
+                ctx.$index = i;
                 r.push(subtype.read(state));
             }
+            state.hiddenstack.pop();
+            state.stack.pop();
             return r;
         },
-        write(state, value) {
+        write (state, value) {
             if (!Array.isArray(value)) {
                 throw new Error("array expected");
             }
             lengthtype.write(state, value.length);
-            for (let i = 0; i < value.length; i++) {
+            state.stack.push({});
+            state.hiddenstack.push({
+                $index: 0,
+                $length: value.length
+            });
+            for(let i = 0; i < value.length; i++){
                 subtype.write(state, value[i]);
             }
+            state.hiddenstack.pop();
+            state.stack.pop();
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             return `${subtype.getTypescriptType(indent)}[]`;
         },
-        getJsonSchema() {
+        getJsonSchema () {
+            let itemtype = subtype.getJsonSchema();
+            itemtype["x-rsmv-type"] = displaytype;
             return {
                 type: "array",
-                items: subtype.getJsonSchema()
+                items: itemtype
             };
         }
     };
-    const resolveLengthReference = function (name, child) {
+    const resolveLengthReference = function(name, child) {
         return buildReference(name, parent, {
             stackdepth: child.stackdepth,
-            resolve(v, old) {
+            resolve (v, old) {
                 if (!Array.isArray(v)) {
                     throw new Error("array expected");
                 }
@@ -1488,10 +2022,18 @@ function arrayParser(args, parent, typedef) {
             }
         });
     };
-    const resolvePropReference = function (name, child) {
+    const resolvePropReference = function(name, child) {
+        if (name == "$index" || name == "$length") {
+            return {
+                stackdepth: child.stackdepth + 1,
+                resolve (v, old) {
+                    throw new Error("not implemented");
+                }
+            };
+        }
         return buildReference(name, parent, {
-            stackdepth: child.stackdepth,
-            resolve(v, old) {
+            stackdepth: child.stackdepth + 1,
+            resolve (v, old) {
                 if (!Array.isArray(v)) {
                     throw new Error("array expected");
                 }
@@ -1500,25 +2042,31 @@ function arrayParser(args, parent, typedef) {
             }
         });
     };
-    if (args.length < 1)
-        throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
-    let sizearg = (args.length >= 2 ? args[0] : "variable unsigned short");
+    if (args.length < 1) throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
+    let sizearg = args.length >= 2 ? args[0] : "variable unsigned short";
     let lengthtype = buildParser(resolveLengthReference, sizearg, typedef);
     let subtype = buildParser(resolvePropReference, args[args.length >= 2 ? 1 : 0], typedef);
+    let displaytype = args[2];
     return r;
 }
 function arrayNullTerminatedParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             let r = [];
-            let ctx = { $opcode: 0 };
+            let ctx = {
+                $opcode: 0
+            };
             state.hiddenstack.push(ctx);
             state.stack.push({});
-            while (true) {
+            while(true){
                 let oldscan = state.scan;
                 let header = lengthtype.read(state);
                 if (debugdata) {
-                    debugdata.opcodes.push({ op: "$opcode", index: oldscan, stacksize: state.stack.length });
+                    debugdata.opcodes.push({
+                        op: "$opcode",
+                        index: oldscan,
+                        stacksize: state.stack.length
+                    });
                 }
                 ctx.$opcode = header;
                 let endint = endvalue.read(state);
@@ -1531,14 +2079,14 @@ function arrayNullTerminatedParser(args, parent, typedef) {
             state.stack.pop();
             return r;
         },
-        write(state, value) {
+        write (state, value) {
             if (!Array.isArray(value)) {
                 throw new Error("array expected");
             }
             //TODO probably very wrong
             state.stack.push(value);
             state.hiddenstack.push({});
-            for (let prop of value) {
+            for (let prop of value){
                 lengthtype.write(state, 1);
                 subtype.write(state, prop);
             }
@@ -1546,26 +2094,28 @@ function arrayNullTerminatedParser(args, parent, typedef) {
             state.stack.pop();
             state.hiddenstack.pop();
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             return `${subtype.getTypescriptType(indent)}[]`;
         },
-        getJsonSchema() {
+        getJsonSchema () {
             return {
                 type: "array",
                 items: subtype.getJsonSchema()
             };
         }
     };
-    const resolveReference = function (name, child) {
+    const resolveReference = function(name, child) {
         if (name == "$opcode") {
             return {
                 stackdepth: child.stackdepth + 1,
-                resolve(v, old) { throw new Error("not implemented"); }
+                resolve (v, old) {
+                    throw new Error("not implemented");
+                }
             };
         }
         return buildReference(name, parent, {
             stackdepth: child.stackdepth + 1,
-            resolve(v, old) {
+            resolve (v, old) {
                 if (!Array.isArray(v)) {
                     throw new Error("array expected");
                 }
@@ -1574,10 +2124,9 @@ function arrayNullTerminatedParser(args, parent, typedef) {
             }
         });
     };
-    if (args.length < 1)
-        throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
-    let sizearg = (args.length >= 2 ? args[0] : "variable unsigned short");
-    let endintarg = (args.length >= 3 ? args[1] : 0);
+    if (args.length < 1) throw new Error(`'read' variables interpretted as an array must contain items: ${JSON.stringify(args)}`);
+    let sizearg = args.length >= 2 ? args[0] : "variable unsigned short";
+    let endintarg = args.length >= 3 ? args[1] : 0;
     let lengthtype = buildParser(null, sizearg, typedef);
     let endvalue = buildParser(null, endintarg, typedef);
     let subtype = buildParser(resolveReference, args[args.length - 1], typedef);
@@ -1588,64 +2137,75 @@ function literalValueParser(constvalue) {
         throw new Error("only bool, number, string or null literals allowed");
     }
     let r = {
-        read(state) {
+        read (state) {
             return constvalue;
         },
-        readConst() {
+        readConst () {
             return constvalue;
         },
-        write(state, value) {
-            if (value != constvalue)
-                throw new Error(`expected constant ${constvalue} was not present during write`);
-            //this is a nop, the existence of this field implies its value
+        write (state, value) {
+            if (value != constvalue) throw new Error(`expected constant ${constvalue} was not present during write`);
+        //this is a nop, the existence of this field implies its value
         },
-        getTypescriptType() {
+        getTypescriptType () {
             return JSON.stringify(constvalue);
         },
-        getJsonSchema() {
-            return { const: constvalue };
+        getJsonSchema () {
+            return {
+                const: constvalue
+            };
         }
     };
     return r;
 }
 function referenceValueParser(args, parent, typedef) {
-    let read = (state) => {
+    let read = (state)=>{
         let value = ref.read(state);
+        if (indexgetter) {
+            let index = indexgetter.read(state);
+            value = value[index];
+        }
         if (minbit != -1) {
-            value = (value >> minbit) & ~((~0) << bitlength);
+            value = value >> minbit & ~(~0 << bitlength);
         }
         return value + offset;
     };
     let r = {
         read,
         readConst: read,
-        write(state, value) {
-            //noop, the referenced value does the writing and will get its value from this prop through refgetter
+        write (state, value) {
+        //noop, the referenced value does the writing and will get its value from this prop through refgetter
         },
-        getTypescriptType() {
+        getTypescriptType () {
             return "number";
         },
-        getJsonSchema() {
+        getJsonSchema () {
             return {
                 type: "integer",
-                minimum: (bitlength == -1 ? undefined : 0),
-                maximum: (bitlength == -1 ? undefined : 2 ** bitlength - 1)
+                minimum: bitlength == -1 ? undefined : 0,
+                maximum: bitlength == -1 ? undefined : 2 ** bitlength - 1
             };
         }
     };
-    if (args.length < 1)
-        throw new Error(`1 argument exptected for proprety with type ref`);
+    if (args.length < 1) throw new Error(`1 argument exptected for proprety with type ref`);
     if (typeof args[0] != "string") {
         throw new Error("ref propname expected");
     }
     let propname = args[0];
-    let [minbit, bitlength] = [-1, -1];
+    let [minbit, bitlength] = [
+        -1,
+        -1
+    ];
+    let indexgetter = null;
     if (args[1]) {
         if (Array.isArray(args[1]) && args[1].length == 2 && typeof args[1][0] == "number" && typeof args[1][1] == "number") {
             minbit = args[1][0];
             bitlength = args[1][1];
-        }
-        else {
+        } else if (typeof args[1] == "string") {
+            indexgetter = refgetter(parent, args[1], (v, old)=>{
+                return old;
+            });
+        } else {
             throw new Error("second argument for ref should be [minbit,bitlen] pair");
         }
     }
@@ -1653,15 +2213,14 @@ function referenceValueParser(args, parent, typedef) {
     if (typeof offset != "number") {
         throw new Error("ref offset should be a number");
     }
-    let ref = refgetter(parent, propname, (v, old) => {
+    let ref = refgetter(parent, propname, (v, old)=>{
         if (typeof v != "number") {
             throw new Error("number expected");
         }
         if (minbit != -1) {
-            let mask = (~(-1 << bitlength)) << minbit;
-            return (old & ~mask) | (v << minbit);
-        }
-        else {
+            let mask = ~(-1 << bitlength) << minbit;
+            return old & ~mask | v << minbit;
+        } else {
             return v;
         }
     });
@@ -1669,40 +2228,40 @@ function referenceValueParser(args, parent, typedef) {
 }
 function bytesRemainingParser() {
     return {
-        read(state) {
+        read (state) {
             return state.endoffset - state.scan;
         },
-        write(state, value) {
-            //nop, value exists only in context of output
+        write (state, value) {
+        //nop, value exists only in context of output
         },
-        getTypescriptType() {
+        getTypescriptType () {
             return "number";
         },
-        getJsonSchema() {
-            return { type: "integer" };
+        getJsonSchema () {
+            return {
+                type: "integer"
+            };
         }
     };
 }
 function intAccumolatorParser(args, parent, typedef) {
     let r = {
-        read(state) {
+        read (state) {
             //TODO fix the context situation
             let increment = value.read(state);
             let newvalue;
             let refvalue = ref.read(state) ?? 0;
             if (mode == "add" || mode == "add-1" || mode == "postadd") {
                 newvalue = refvalue + (increment ?? 0) + (mode == "add-1" ? -1 : 0);
-            }
-            else if (mode == "hold") {
+            } else if (mode == "hold") {
                 newvalue = increment ?? refvalue;
-            }
-            else {
+            } else {
                 throw new Error("unknown accumolator mode");
             }
             ref.write(state, newvalue);
-            return (mode == "postadd" ? refvalue : newvalue);
+            return mode == "postadd" ? refvalue : newvalue;
         },
-        write(state, v) {
+        write (state, v) {
             if (typeof v != "number") {
                 throw new Error("number expected");
             }
@@ -1710,35 +2269,33 @@ function intAccumolatorParser(args, parent, typedef) {
             let increment;
             if (mode == "add" || mode == "add-1") {
                 increment = v - refvalue + (mode == "add-1" ? 1 : 0);
-            }
-            else if (mode == "hold") {
+            } else if (mode == "hold") {
                 throw new Error("writing accum intaccum hold not implemented");
-            }
-            else if (mode == "postadd") {
+            } else if (mode == "postadd") {
                 throw new Error("writing accum intaccum postadd not implemented");
-            }
-            else {
+            } else {
                 throw new Error("unknown accumolator mode");
             }
             value.write(state, increment);
             ref.write(state, v);
         },
-        getTypescriptType() {
+        getTypescriptType () {
             return "number";
         },
-        getJsonSchema() {
-            return { type: "integer" };
+        getJsonSchema () {
+            return {
+                type: "integer"
+            };
         }
     };
-    if (args.length < 2)
-        throw new Error(`2 arguments exptected for proprety with type accum`);
+    if (args.length < 2) throw new Error(`2 arguments exptected for proprety with type accum`);
     let refname = args[0];
     let value = buildParser(parent, args[1], typedef);
     let mode = args[2] ?? "add";
     if (typeof refname != "string") {
         throw new Error("ref name should be a string");
     }
-    let ref = refgetter(parent, refname, (v, old) => {
+    let ref = refgetter(parent, refname, (v, old)=>{
         return old;
     });
     return r;
@@ -1746,15 +2303,15 @@ function intAccumolatorParser(args, parent, typedef) {
 function stringParser(prebytes) {
     const encoding = "latin1";
     return {
-        read(state) {
-            let terminator = (getClientVersion(state.args) <= _constants__WEBPACK_IMPORTED_MODULE_0__.lastLegacyBuildnr ? 0xA : 0);
-            for (let i = 0; i < prebytes.length; i++, state.scan++) {
+        read (state) {
+            let terminator = getClientVersion(state.args) <= _constants__WEBPACK_IMPORTED_MODULE_0__.lastLegacyBuildnr ? 0xA : 0;
+            for(let i = 0; i < prebytes.length; i++, state.scan++){
                 if (state.buffer.readUInt8(state.scan) != prebytes[i]) {
                     throw new Error("failed to match string header bytes");
                 }
             }
             let end = state.scan;
-            while (true) {
+            while(true){
                 if (end == state.endoffset) {
                     throw new Error("reading string without null termination");
                 }
@@ -1767,10 +2324,9 @@ function stringParser(prebytes) {
             state.scan = end + 1;
             return outputstr;
         },
-        write(state, value) {
-            if (typeof value != "string")
-                throw new Error(`string expected`);
-            let terminator = (getClientVersion(state.args) <= _constants__WEBPACK_IMPORTED_MODULE_0__.lastLegacyBuildnr ? 0xA : 0);
+        write (state, value) {
+            if (typeof value != "string") throw new Error(`string expected`);
+            let terminator = getClientVersion(state.args) <= _constants__WEBPACK_IMPORTED_MODULE_0__.lastLegacyBuildnr ? 0xA : 0;
             let writebytes = [
                 ...prebytes,
                 ...Buffer.from(value, encoding),
@@ -1780,59 +2336,75 @@ function stringParser(prebytes) {
             state.scan += writebytes.length;
             ;
         },
-        getTypescriptType() {
+        getTypescriptType () {
             return "string";
         },
-        getJsonSchema() {
-            return { type: "string" };
+        getJsonSchema () {
+            return {
+                type: "string"
+            };
+        }
+    };
+}
+function typedParser(args, parent, typedef) {
+    let sub = buildParser(parent, args[0], typedef);
+    let type = args[1];
+    if (typeof type != "string") {
+        throw new Error("typed parser second argument should be a type string");
+    }
+    return {
+        ...sub,
+        getJsonSchema () {
+            let schema = sub.getJsonSchema();
+            schema["x-rsmv-type"] = type;
+            return schema;
         }
     };
 }
 function conditionParser(parent, optionstrings, writegetindex) {
     let varmap = [];
     let options = [];
-    for (let str of optionstrings) {
+    for (let str of optionstrings){
         str = str.replace(/\s/g, "");
         let parts = str.split(/&&/g);
         let conds = [];
-        for (let opt of parts) {
+        for (let opt of parts){
             let op;
             let varname;
             let value = 0;
             if (opt == "default" || opt == "other") {
                 continue;
-            }
-            else {
+            } else {
                 let m = opt.match(/^((?<var>[\$a-zA-Z]\w*)?(?<op><|<=|>|>=|&|==|=|!&|&=|!=)?)?(?<version>0x[\da-fA=F]+|-?\d+)$/);
                 if (!m) {
                     throw new Error("invalid match value, expected <op><version>. For example '>10'");
                 }
                 value = parseInt(m.groups.version);
-                op = (m.groups.op ?? "=");
+                op = m.groups.op ?? "=";
                 if (op == "==") {
                     op = "=";
                 }
                 varname = m.groups.var ?? "$opcode";
             }
-            let varindex = varmap.findIndex(q => q.name == varname);
+            let varindex = varmap.findIndex((q)=>q.name == varname);
             if (varindex == -1) {
                 varindex = varmap.length;
                 varmap.push({
                     name: varname,
-                    parser: refgetter(parent, varname, (v, oldvalue) => {
+                    parser: refgetter(parent, varname, (v, oldvalue)=>{
                         if (!writegetindex) {
                             throw new Error("write not implemented");
                         }
                         let index = writegetindex(v);
-                        for (let optionindex = 0; optionindex < options.length; optionindex++) {
+                        for(let optionindex = 0; optionindex < options.length; optionindex++){
                             let option = options[optionindex];
-                            for (let con of option) {
+                            for (let con of option){
                                 if (con.varindex != varindex) {
                                     continue;
                                 }
                                 let state = optionindex == index;
                                 let compValue = con.value;
-                                switch (con.op) {
+                                switch(con.op){
                                     case "=":
                                         oldvalue = state ? compValue : oldvalue;
                                         break;
@@ -1840,13 +2412,13 @@ function conditionParser(parent, optionstrings, writegetindex) {
                                         oldvalue = state ? oldvalue : compValue;
                                         break;
                                     case "&":
-                                        oldvalue = (state ? oldvalue | compValue : oldvalue & ~compValue);
+                                        oldvalue = state ? oldvalue | compValue : oldvalue & ~compValue;
                                         break;
                                     case "&=":
-                                        oldvalue = (state ? oldvalue | compValue : oldvalue & ~compValue);
+                                        oldvalue = state ? oldvalue | compValue : oldvalue & ~compValue;
                                         break;
                                     case "!&":
-                                        oldvalue = (state ? oldvalue & ~compValue : oldvalue | compValue);
+                                        oldvalue = state ? oldvalue & ~compValue : oldvalue | compValue;
                                         break;
                                     case ">=":
                                         oldvalue = state ? Math.max(compValue, oldvalue) : oldvalue;
@@ -1860,7 +2432,8 @@ function conditionParser(parent, optionstrings, writegetindex) {
                                     case "<":
                                         oldvalue = state ? Math.min(compValue - 1, oldvalue) : oldvalue;
                                         break;
-                                    default: throw new Error("unknown condition " + con.op);
+                                    default:
+                                        throw new Error("unknown condition " + con.op);
                                 }
                             }
                         }
@@ -1868,18 +2441,23 @@ function conditionParser(parent, optionstrings, writegetindex) {
                     })
                 });
             }
-            conds.push({ op, value, varname, varindex });
+            conds.push({
+                op,
+                value,
+                varname,
+                varindex
+            });
         }
         options.push(conds);
     }
-    let match = (state) => {
-        let vars = varmap.map(q => q.parser.read(state));
-        for (let optindex = 0; optindex < options.length; optindex++) {
+    let match = (state)=>{
+        let vars = varmap.map((q)=>q.parser.read(state));
+        for(let optindex = 0; optindex < options.length; optindex++){
             let opt = options[optindex];
             let matched = true;
-            for (let cond of opt) {
+            for (let cond of opt){
                 let value = vars[cond.varindex];
-                switch (cond.op) {
+                switch(cond.op){
                     case "=":
                         matched = value == cond.value;
                         break;
@@ -1907,7 +2485,8 @@ function conditionParser(parent, optionstrings, writegetindex) {
                     case "&=":
                         matched = (value & cond.value) == cond.value;
                         break;
-                    default: throw new Error("unknown op" + cond.op);
+                    default:
+                        throw new Error("unknown op" + cond.op);
                 }
                 if (!matched) {
                     break;
@@ -1919,12 +2498,14 @@ function conditionParser(parent, optionstrings, writegetindex) {
         }
         return -1;
     };
-    return { match };
+    return {
+        match
+    };
 }
 const hardcodes = {
-    playeritem: function () {
+    playeritem: function() {
         return {
-            read(state) {
+            read (state) {
                 let byte0 = state.buffer.readUInt8(state.scan++);
                 if (byte0 == 0) {
                     return 0;
@@ -1933,34 +2514,46 @@ const hardcodes = {
                 if (byte1 == 0xff && byte0 == 0xff) {
                     return -1;
                 }
-                return (byte0 << 8) | byte1;
+                return byte0 << 8 | byte1;
             },
-            write(state, value) {
+            write (state, value) {
                 if (typeof value != "number") {
                     throw new Error("number expected");
                 }
                 if (value == 0) {
                     state.buffer.writeUInt8(0, state.scan++);
-                }
-                else {
+                } else {
                     //replicate explicit 16bit overflow bug since that's what the game does
-                    state.buffer.writeUint16BE((value == -1 ? 0xffff : value & 0xffff), state.scan);
+                    state.buffer.writeUint16BE(value == -1 ? 0xffff : value & 0xffff, state.scan);
                     state.scan += 2;
                 }
             },
-            getTypescriptType() { return "number"; },
-            getJsonSchema() { return { type: "integer", minimum: -1, maximum: 0xffff - 0x4000 - 1 }; }
+            getTypescriptType () {
+                return "number";
+            },
+            getJsonSchema () {
+                return {
+                    type: "integer",
+                    minimum: -1,
+                    maximum: 0xffff - 0x4000 - 1
+                };
+            }
         };
     },
-    itemvar: function (args) {
+    itemvar: function(args) {
         let type = args[0];
-        if (typeof type != "string" || !["ref", "matcount", "colorcount", "modelcount"].includes(type)) {
+        if (typeof type != "string" || ![
+            "ref",
+            "matcount",
+            "colorcount",
+            "modelcount"
+        ].includes(type)) {
             throw new Error();
         }
         //yes this is hacky af...
         return {
-            read(state) {
-                let activeitem = (typeof state.args.activeitem == "number" ? state.args.activeitem : -1);
+            read (state) {
+                let activeitem = typeof state.args.activeitem == "number" ? state.args.activeitem : -1;
                 if (type == "ref") {
                     activeitem++;
                     state.args.activeitem = activeitem;
@@ -1971,47 +2564,57 @@ const hardcodes = {
                 let ref = state.args.slots[activeitem];
                 if (type == "ref") {
                     return ref;
-                }
-                else if (type == "matcount") {
+                } else if (type == "matcount") {
                     return ref?.replaceMaterials?.length ?? 0;
-                }
-                else if (type == "colorcount") {
+                } else if (type == "colorcount") {
                     return ref?.replaceColors?.length ?? 0;
-                }
-                else if (type == "modelcount") {
+                } else if (type == "modelcount") {
                     return ref?.models.length;
-                }
-                else {
+                } else {
                     throw new Error();
                 }
             },
-            write() {
-                //noop
+            write () {
+            //noop
             },
-            getTypescriptType() { return (type == "ref" ? "any" : "number"); },
-            getJsonSchema() { return { type: (type == "ref" ? "any" : "integer") }; }
+            getTypescriptType () {
+                return type == "ref" ? "any" : "number";
+            },
+            getJsonSchema () {
+                return {
+                    type: type == "ref" ? "any" : "integer"
+                };
+            }
         };
     },
-    buildnr: function (args, typedef) {
+    buildnr: function(args, typedef) {
         return {
-            readConst(state) {
+            readConst (state) {
                 return getClientVersion(state.args);
             },
-            read(state) {
+            read (state) {
                 return getClientVersion(state.args);
             },
-            write(state, v) { },
-            getTypescriptType(indent) { return "number"; },
-            getJsonSchema() { return { type: "number" }; }
+            write (state, v) {},
+            getTypescriptType (indent) {
+                return "number";
+            },
+            getJsonSchema () {
+                return {
+                    type: "number"
+                };
+            }
         };
     },
-    match: function (args, parent, typedef) {
+    match: function(args, parent, typedef) {
         let r = {
-            read(state) {
-                let opcodeprop = { $opcode: 0 };
+            read (state) {
+                let opcodeprop = {
+                    $opcode: 0
+                };
                 state.stack.push({});
                 state.hiddenstack.push(opcodeprop);
-                let value = (opvalueparser ? opvalueparser.read(state) : 0);
+                let value = opvalueparser ? opvalueparser.read(state) : 0;
                 opcodeprop.$opcode = value;
                 let opindex = conditionparser.match(state);
                 if (opindex == -1) {
@@ -2022,8 +2625,10 @@ const hardcodes = {
                 state.hiddenstack.pop();
                 return res;
             },
-            write(state, v) {
-                let opcodeprop = { $opcode: 0 };
+            write (state, v) {
+                let opcodeprop = {
+                    $opcode: 0
+                };
                 state.stack.push({});
                 state.hiddenstack.push(opcodeprop);
                 if (opvalueparser) {
@@ -2041,17 +2646,19 @@ const hardcodes = {
                 state.stack.pop();
                 state.hiddenstack.pop();
             },
-            getTypescriptType(indent) {
-                return "(" + optionvalues.map(opt => opt.getTypescriptType(indent + "\t")).join("|") + ")";
+            getTypescriptType (indent) {
+                return "(" + optionvalues.map((opt)=>opt.getTypescriptType(indent + "\t")).join("|") + ")";
             },
-            getJsonSchema() {
-                return { anyOf: optionvalues.map(opt => opt.getJsonSchema()) };
+            getJsonSchema () {
+                return {
+                    anyOf: optionvalues.map((opt)=>opt.getJsonSchema())
+                };
             }
         };
-        const resolveReference = function (name, child) {
+        const resolveReference = function(name, child) {
             let res = {
                 stackdepth: child.stackdepth + 1,
-                resolve(v, old) {
+                resolve (v, old) {
                     throw new Error("write not supported");
                 }
             };
@@ -2061,7 +2668,10 @@ const hardcodes = {
             return buildReference(name, parent, res);
         };
         if (args.length == 1) {
-            args = [null, args[0]];
+            args = [
+                null,
+                args[0]
+            ];
         }
         if (args.length != 2) {
             throw new Error("match chunks needs 2 arguments");
@@ -2069,31 +2679,45 @@ const hardcodes = {
         if (typeof args[1] != "object") {
             throw new Error("match chunk requires 2n+2 arguments");
         }
-        let opvalueparser = (args[0] ? buildParser(resolveReference, args[0], typedef) : null);
+        let opvalueparser = args[0] ? buildParser(resolveReference, args[0], typedef) : null;
         let conditionstrings = Object.keys(args[1]);
-        let optionvalues = Object.values(args[1]).map(q => buildParser(resolveReference, q, typedef));
+        let optionvalues = Object.values(args[1]).map((q)=>buildParser(resolveReference, q, typedef));
         let conditionparser = conditionParser(resolveReference, conditionstrings);
         return r;
     },
-    footer: function (args, parent, typedef) {
+    footer: function(args, parent, typedef) {
         if (args.length != 2) {
             throw new Error("footer requires length and subtype arguments");
         }
         let lentype = buildParser(parent, args[0], typedef);
         let subtype = buildParser(parent, args[1], typedef);
         return {
-            read(state) {
+            read (state) {
                 let len = lentype.read(state);
                 let oldscan = state.scan;
                 let footstart = state.endoffset - len;
                 state.scan = footstart;
                 if (debugdata) {
                     // debugdata.opcodes.push({ op: `footer`, index: oldscan, stacksize: state.stack.length + 1, external: { start: state.scan, len: 0 } });
-                    debugdata.opcodes.push({ op: `footer`, index: oldscan, stacksize: state.stack.length + 1, jump: { to: footstart } });
+                    debugdata.opcodes.push({
+                        op: `footer`,
+                        index: oldscan,
+                        stacksize: state.stack.length + 1,
+                        jump: {
+                            to: footstart
+                        }
+                    });
                 }
                 let res = subtype.read(state);
                 if (debugdata) {
-                    debugdata.opcodes.push({ op: `footer`, index: state.scan, stacksize: state.stack.length + 1, jump: { to: oldscan } });
+                    debugdata.opcodes.push({
+                        op: `footer`,
+                        index: state.scan,
+                        stacksize: state.stack.length + 1,
+                        jump: {
+                            to: oldscan
+                        }
+                    });
                 }
                 if (state.scan != state.endoffset) {
                     console.log(`didn't read full footer, ${state.endoffset - state.scan} bytes left`);
@@ -2102,7 +2726,7 @@ const hardcodes = {
                 state.endoffset = state.endoffset - len;
                 return res;
             },
-            write(state, v) {
+            write (state, v) {
                 let oldscan = state.scan;
                 subtype.write(state, v);
                 let len = state.scan - oldscan;
@@ -2110,28 +2734,61 @@ const hardcodes = {
                 state.scan = oldscan;
                 state.endoffset -= len;
             },
-            getTypescriptType(indent) {
+            getTypescriptType (indent) {
                 return subtype.getTypescriptType(indent);
             },
-            getJsonSchema() {
+            getJsonSchema () {
                 return subtype.getJsonSchema();
-            },
+            }
         };
     },
-    "tailed varushort": function (args, parent, typedef) {
+    "flipped varushort": function(args, parent, typedef) {
+        // same as varushort, but flips bytes for some reason
+        // idk why this exists, but its used by dbrows table id field
+        // TODO i remember this existing in skeletal anims as well, merge implementations
+        return {
+            read (state) {
+                let byte0 = state.buffer.readUint8(state.scan++);
+                if ((byte0 & 0x80) == 0) {
+                    return byte0;
+                }
+                let byte1 = state.buffer.readUint8(state.scan++);
+                return byte1 << 7 | byte0 & 0x7f;
+            },
+            write (state, v) {
+                if (typeof v != "number") {
+                    throw new Error("number expected");
+                }
+                if (v < 0x80) {
+                    state.buffer.writeUint8(v, state.scan++);
+                } else {
+                    state.buffer.writeUint8(v & 0x7f | 0x80, state.scan++);
+                    state.buffer.writeUint8(v >> 7, state.scan++);
+                }
+            },
+            getTypescriptType (indent) {
+                return "number";
+            },
+            getJsonSchema () {
+                return {
+                    type: "number"
+                };
+            }
+        };
+    },
+    "tailed varushort": function(args, parent, typedef) {
         const overflowchunk = 0x7fff;
         return {
-            read(state) {
+            read (state) {
                 let sum = 0;
-                while (true) {
+                while(true){
                     let byte0 = state.buffer.readUint8(state.scan++);
                     let v;
                     if ((byte0 & 0x80) == 0) {
                         v = byte0;
-                    }
-                    else {
+                    } else {
                         let byte1 = state.buffer.readUint8(state.scan++);
-                        v = ((byte0 & 0x7f) << 8) | byte1;
+                        v = (byte0 & 0x7f) << 8 | byte1;
                     }
                     sum += v;
                     if (v != overflowchunk) {
@@ -2139,33 +2796,34 @@ const hardcodes = {
                     }
                 }
             },
-            write(state, v) {
+            write (state, v) {
                 if (typeof v != "number") {
                     throw new Error("number expected");
                 }
-                while (v >= 0) {
+                while(v >= 0){
                     let chunk = Math.min(overflowchunk, v);
                     if (chunk < 0x80) {
                         state.buffer.writeUint8(chunk, state.scan++);
-                    }
-                    else {
+                    } else {
                         state.buffer.writeUint16BE(chunk | 0x8000, state.scan);
                         state.scan += 2;
                     }
                     v -= chunk;
                 }
             },
-            getTypescriptType(indent) {
+            getTypescriptType (indent) {
                 return "number";
             },
-            getJsonSchema() {
-                return { type: "number" };
+            getJsonSchema () {
+                return {
+                    type: "number"
+                };
             }
         };
     },
-    "legacy_maptile": function (args, parent, typedef) {
+    "legacy_maptile": function(args, parent, typedef) {
         return {
-            read(state) {
+            read (state) {
                 let res = {
                     flags: 0,
                     shape: null,
@@ -2174,7 +2832,7 @@ const hardcodes = {
                     underlay: null,
                     height: null
                 };
-                while (true) {
+                while(true){
                     let op = state.buffer.readUint8(state.scan++);
                     if (op == 0) {
                         break;
@@ -2197,64 +2855,72 @@ const hardcodes = {
                 }
                 return res;
             },
-            write(state) {
+            write (state) {
                 throw new Error("not implemented");
             },
-            getTypescriptType(indent) {
+            getTypescriptType (indent) {
                 let newindent = indent + "\t";
-                return `{\n`
-                    + `${newindent}flags: number,\n`
-                    + `${newindent}shape: number | null,\n`
-                    + `${newindent}overlay: number | null,\n`
-                    + `${newindent}settings: number | null,\n`
-                    + `${newindent}underlay: number | null,\n`
-                    + `${newindent}height: number | null,\n`
-                    + `${indent}}`;
+                return `{\n` + `${newindent}flags: number,\n` + `${newindent}shape: number | null,\n` + `${newindent}overlay: number | null,\n` + `${newindent}settings: number | null,\n` + `${newindent}underlay: number | null,\n` + `${newindent}height: number | null,\n` + `${indent}}`;
             },
-            getJsonSchema() {
-                return { type: "any" };
+            getJsonSchema () {
+                return {
+                    type: "any"
+                };
             }
         };
     },
-    scriptopt: function (args, parent, typedef) {
+    scriptopt: function(args, parent, typedef) {
         return {
-            read(state) {
-                let cali = state.args.clientScriptDeob;
-                //don't explicitly check prototype here as we would have to import the constructor
-                if (!cali) {
-                    throw new Error("opcode callibration not set for clientscript with obfuscated opcodes");
-                }
+            read (state) {
                 if (debugdata) {
-                    debugdata.opcodes.push({ op: "opcode", index: state.scan, stacksize: state.stack.length + 1 });
+                    debugdata.opcodes.push({
+                        op: "opcode",
+                        index: state.scan,
+                        stacksize: state.stack.length + 1
+                    });
                 }
-                let res = cali.readOpcode(state);
-                return res;
-            },
-            write(state, v) {
-                let cali = state.args.clientScriptDeob;
-                ;
-                if (!cali) {
-                    throw new Error("opcode callibration not set for clientscript with obfuscated opcodes");
+                let deob = state.args.clientScriptDeob;
+                if (!deob || !deob.loaded) {
+                    throw new Error("clientScriptDeob not set in args");
                 }
-                cali.writeOpCode(state, v);
+                return deob.loaded.readOpcode(state);
             },
-            getJsonSchema() {
+            write (state, v) {
+                let deob = state.args.clientScriptDeob;
+                if (!deob || !deob.loaded) {
+                    throw new Error("clientScriptDeob not set in args");
+                }
+                deob.loaded.writeOpCode(state, v);
+            },
+            getJsonSchema () {
                 return {
                     type: "object",
                     properties: {
-                        opcode: { type: "number" },
-                        imm: { type: "number" },
-                        imm_obj: { oneOf: [{ type: "number" }, { type: "string" }, { type: "null" }] }
+                        opcode: {
+                            type: "number"
+                        },
+                        imm: {
+                            type: "number"
+                        },
+                        imm_obj: {
+                            oneOf: [
+                                {
+                                    type: "number"
+                                },
+                                {
+                                    type: "string"
+                                },
+                                {
+                                    type: "null"
+                                }
+                            ]
+                        }
                     }
                 };
             },
-            getTypescriptType(indent) {
+            getTypescriptType (indent) {
                 let newindent = indent + "\t";
-                return `{\n`
-                    + `${newindent}opcode:number,\n`
-                    + `${newindent}imm:number,\n`
-                    + `${newindent}imm_obj:number|string|[number,number]|null,\n`
-                    + `${indent}}`;
+                return `{\n` + `${newindent}opcode:number,\n` + `${newindent}imm:number,\n` + `${newindent}imm_obj:number|string|[number,number]|null,\n` + `${indent}}`;
             }
         };
     }
@@ -2267,222 +2933,309 @@ function getClientVersion(args) {
 }
 const numberTypes = {
     ubyte: {
-        read(s) { let r = s.buffer.readUInt8(s.scan); s.scan += 1; return r; },
-        write(s, v) { s.buffer.writeUInt8(v, s.scan); s.scan += 1; },
-        min: 0, max: 255
+        read (s) {
+            let r = s.buffer.readUInt8(s.scan);
+            s.scan += 1;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUInt8(v, s.scan);
+            s.scan += 1;
+        },
+        min: 0,
+        max: 255
     },
     byte: {
-        read(s) { let r = s.buffer.readInt8(s.scan); s.scan += 1; return r; },
-        write(s, v) { s.buffer.writeInt8(v, s.scan); s.scan += 1; },
-        min: -128, max: 127
+        read (s) {
+            let r = s.buffer.readInt8(s.scan);
+            s.scan += 1;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeInt8(v, s.scan);
+            s.scan += 1;
+        },
+        min: -128,
+        max: 127
     },
     ushort: {
-        read(s) { let r = s.buffer.readUInt16BE(s.scan); s.scan += 2; return r; },
-        write(s, v) { s.buffer.writeUInt16BE(v, s.scan); s.scan += 2; },
-        min: 0, max: 2 ** 16 - 1
+        read (s) {
+            let r = s.buffer.readUInt16BE(s.scan);
+            s.scan += 2;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUInt16BE(v, s.scan);
+            s.scan += 2;
+        },
+        min: 0,
+        max: 2 ** 16 - 1
     },
     short: {
-        read(s) { let r = s.buffer.readInt16BE(s.scan); s.scan += 2; return r; },
-        write(s, v) { s.buffer.writeInt16BE(v, s.scan); s.scan += 2; },
-        min: -(2 ** 15), max: 2 ** 15 - 1
+        read (s) {
+            let r = s.buffer.readInt16BE(s.scan);
+            s.scan += 2;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeInt16BE(v, s.scan);
+            s.scan += 2;
+        },
+        min: -(2 ** 15),
+        max: 2 ** 15 - 1
     },
     uint: {
-        read(s) { let r = s.buffer.readUInt32BE(s.scan); s.scan += 4; return r; },
-        write(s, v) { s.buffer.writeUInt32BE(v, s.scan); s.scan += 4; },
-        min: 0, max: 2 ** 32 - 1
+        read (s) {
+            let r = s.buffer.readUInt32BE(s.scan);
+            s.scan += 4;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUInt32BE(v, s.scan);
+            s.scan += 4;
+        },
+        min: 0,
+        max: 2 ** 32 - 1
     },
     int: {
-        read(s) { let r = s.buffer.readInt32BE(s.scan); s.scan += 4; return r; },
-        write(s, v) { s.buffer.writeInt32BE(v, s.scan); s.scan += 4; },
-        min: -(2 ** 31), max: 2 ** 31 - 1
+        read (s) {
+            let r = s.buffer.readInt32BE(s.scan);
+            s.scan += 4;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeInt32BE(v, s.scan);
+            s.scan += 4;
+        },
+        min: -(2 ** 31),
+        max: 2 ** 31 - 1
     },
     uint_le: {
-        read(s) { let r = s.buffer.readUInt32LE(s.scan); s.scan += 4; return r; },
-        write(s, v) { s.buffer.writeUint32LE(v, s.scan); s.scan += 4; },
-        min: 0, max: 2 ** 32 - 1
+        read (s) {
+            let r = s.buffer.readUInt32LE(s.scan);
+            s.scan += 4;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUint32LE(v, s.scan);
+            s.scan += 4;
+        },
+        min: 0,
+        max: 2 ** 32 - 1
     },
     ushort_le: {
-        read(s) { let r = s.buffer.readUInt16LE(s.scan); s.scan += 2; return r; },
-        write(s, v) { s.buffer.writeUint16LE(v, s.scan); s.scan += 2; },
-        min: 0, max: 2 ** 16 - 1
+        read (s) {
+            let r = s.buffer.readUInt16LE(s.scan);
+            s.scan += 2;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUint16LE(v, s.scan);
+            s.scan += 2;
+        },
+        min: 0,
+        max: 2 ** 16 - 1
     },
     utribyte: {
-        read(s) { let r = s.buffer.readUIntBE(s.scan, 3); s.scan += 3; return r; },
-        write(s, v) { s.buffer.writeUintBE(v, s.scan, 3); s.scan += 3; },
-        min: 0, max: 2 ** 24 - 1
+        read (s) {
+            let r = s.buffer.readUIntBE(s.scan, 3);
+            s.scan += 3;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeUintBE(v, s.scan, 3);
+            s.scan += 3;
+        },
+        min: 0,
+        max: 2 ** 24 - 1
     },
     float: {
-        read(s) { let r = s.buffer.readFloatBE(s.scan); s.scan += 4; return r; },
-        write(s, v) { s.buffer.writeFloatBE(v, s.scan); s.scan += 4; },
-        min: Number.MIN_VALUE, max: Number.MAX_VALUE
+        read (s) {
+            let r = s.buffer.readFloatBE(s.scan);
+            s.scan += 4;
+            return r;
+        },
+        write (s, v) {
+            s.buffer.writeFloatBE(v, s.scan);
+            s.scan += 4;
+        },
+        min: Number.MIN_VALUE,
+        max: Number.MAX_VALUE
     },
     varushort: {
-        read(s) {
+        read (s) {
             let firstByte = s.buffer.readUInt8(s.scan++);
             if ((firstByte & 0x80) == 0) {
                 return firstByte;
             }
             let secondByte = s.buffer.readUInt8(s.scan++);
-            return ((firstByte & 0x7f) << 8) | secondByte;
+            return (firstByte & 0x7f) << 8 | secondByte;
         },
-        write(s, v) {
+        write (s, v) {
             if (v < 0x80) {
                 s.buffer.writeUInt8(v, s.scan);
                 s.scan += 1;
-            }
-            else {
+            } else {
                 s.buffer.writeUint16BE(v | 0x8000, s.scan);
                 s.scan += 2;
             }
         },
-        min: 0, max: 2 ** 15 - 1
+        min: 0,
+        max: 2 ** 15 - 1
     },
     varshort: {
-        read(s) {
+        read (s) {
             let firstByte = s.buffer.readUInt8(s.scan++);
             if ((firstByte & 0x80) == 0) {
                 //sign extend from 7nth bit (>> fills using 32th bit)
-                return (firstByte << (32 - 7)) >> (32 - 7);
+                return firstByte << 32 - 7 >> 32 - 7;
             }
             let secondByte = s.buffer.readUInt8(s.scan++);
-            return ((((firstByte & 0x7f) << 8) | secondByte) << (32 - 15)) >> (32 - 15);
+            return ((firstByte & 0x7f) << 8 | secondByte) << 32 - 15 >> 32 - 15;
         },
-        write(s, v) {
+        write (s, v) {
             if (v < 0x40 && v >= -0x40) {
                 s.buffer.writeUInt8(v & 0x7f, s.scan);
                 s.scan += 1;
-            }
-            else {
+            } else {
                 s.buffer.writeInt16BE(v | 0x8000, s.scan);
                 s.scan += 2;
             }
         },
-        min: -(2 ** 14), max: 2 ** 14 - 1
+        min: -(2 ** 14),
+        max: 2 ** 14 - 1
     },
     varuint: {
-        read(s) {
+        read (s) {
             let firstWord = s.buffer.readUInt16BE(s.scan);
             s.scan += 2;
             if ((firstWord & 0x8000) == 0) {
                 return firstWord;
-            }
-            else {
+            } else {
                 let secondWord = s.buffer.readUInt16BE(s.scan);
                 s.scan += 2;
-                return ((firstWord & 0x7fff) << 16) | secondWord;
+                return (firstWord & 0x7fff) << 16 | secondWord;
             }
         },
-        write(s, v) {
+        write (s, v) {
             if (v < 0x8000) {
                 s.buffer.writeUInt16BE(v, s.scan);
                 s.scan += 2;
-            }
-            else {
+            } else {
                 //unsigned right shift to cast to uint32 again
                 s.buffer.writeUint32BE((v | 0x80000000) >>> 0, s.scan);
                 s.scan += 4;
             }
         },
-        min: 0, max: 2 ** 31 - 1
+        min: 0,
+        max: 2 ** 31 - 1
     },
     varnullint: {
-        read(s) {
+        read (s) {
             let firstWord = s.buffer.readUInt16BE(s.scan);
             s.scan += 2;
             if (firstWord == 0x7fff) {
                 return -1;
-            }
-            else if ((firstWord & 0x8000) == 0) {
+            } else if ((firstWord & 0x8000) == 0) {
                 return firstWord;
-            }
-            else {
+            } else {
                 let secondWord = s.buffer.readUInt16BE(s.scan);
                 s.scan += 2;
-                return ((firstWord & 0x7fff) << 16) | secondWord;
+                return (firstWord & 0x7fff) << 16 | secondWord;
             }
         },
-        write(s, v) {
+        write (s, v) {
             if (v == -1) {
                 s.buffer.writeUint16BE(0x7fff, s.scan);
                 s.scan += 2;
-            }
-            else if (v < 0x8000) {
+            } else if (v < 0x8000) {
                 s.buffer.writeUInt16BE(v, s.scan);
                 s.scan += 2;
-            }
-            else {
+            } else {
                 //unsigned right shift to cast to uint32 again
                 s.buffer.writeUint32BE((v | 0x80000000) >>> 0, s.scan);
                 s.scan += 4;
             }
         },
-        min: -1, max: 2 ** 31 - 1
+        min: -1,
+        max: 2 ** 31 - 1
     },
     varint: {
-        read(s) {
+        read (s) {
             let firstWord = s.buffer.readUInt16BE(s.scan);
             s.scan += 2;
             if ((firstWord & 0x8000) == 0) {
                 //sign extend from 7nth bit (>> fills using 32th bit)
-                return (firstWord << (32 - 15)) >> (32 - 15);
+                return firstWord << 32 - 15 >> 32 - 15;
             }
             let secondWord = s.buffer.readUInt16BE(s.scan);
             s.scan += 2;
-            return ((((firstWord & 0x7fff) << 16) | secondWord) << (32 - 31)) >> (32 - 31);
+            return ((firstWord & 0x7fff) << 16 | secondWord) << 32 - 31 >> 32 - 31;
         },
-        write(s, v) {
+        write (s, v) {
             if (v < 0x4000 && v >= -0x4000) {
                 //reset bits 31-15
                 s.buffer.writeUInt16BE(v & 0x7fff, s.scan);
                 s.scan += 2;
-            }
-            else {
+            } else {
                 s.buffer.writeInt32BE(v | 0x800000, s.scan);
                 s.scan += 4;
             }
         },
-        min: -(2 ** 30), max: 2 ** 30 - 1
+        min: -(2 ** 30),
+        max: 2 ** 30 - 1
     }
 };
 const parserPrimitives = {
-    ...Object.fromEntries(Object.entries(numberTypes).map(([k, e]) => [k, {
-            read: e.read,
-            write: (s, v) => {
-                if (typeof v != "number" || v > e.max || v < e.min) {
-                    throw new Error();
+    ...Object.fromEntries(Object.entries(numberTypes).map(([k, e])=>[
+            k,
+            {
+                read: e.read,
+                write: (s, v)=>{
+                    if (typeof v != "number" || v > e.max || v < e.min) {
+                        throw new Error();
+                    }
+                    e.write(s, v);
+                },
+                getJsonSchema () {
+                    return {
+                        type: "number",
+                        maximum: e.max,
+                        minimum: e.min
+                    };
+                },
+                getTypescriptType (indent) {
+                    return "number";
                 }
-                e.write(s, v);
-            },
-            getJsonSchema() {
-                return { type: "number", maximum: e.max, minimum: e.min };
-            },
-            getTypescriptType(indent) {
-                return "number";
             }
-        }])),
+        ])),
     bool: {
-        read(s) {
+        read (s) {
             let r = s.buffer.readUInt8(s.scan++);
             if (r != 0 && r != 1) {
                 throw new Error("1 or 0 expected boolean value");
             }
             return r != 0;
         },
-        write(s, v) {
+        write (s, v) {
             if (typeof v != "boolean") {
                 throw new Error("boolean expected");
             }
             s.buffer.writeUInt8(+v, s.scan++);
         },
-        getJsonSchema() {
-            return { type: "boolean" };
+        getJsonSchema () {
+            return {
+                type: "boolean"
+            };
         },
-        getTypescriptType(indent) {
+        getTypescriptType (indent) {
             return "boolean";
         }
     },
     string: stringParser([]),
-    paddedstring: stringParser([0]),
+    paddedstring: stringParser([
+        0
+    ])
 };
 const parserFunctions = {
     ref: referenceValueParser,
@@ -2493,68 +3246,77 @@ const parserFunctions = {
     buffer: bufferParser,
     nullarray: arrayNullTerminatedParser,
     array: arrayParser,
-    struct: structParser,
-    tuple: tuppleParser,
+    struct: structParserFactory(false),
+    ministruct: structParserFactory(true),
+    tuple: tupleParserFactory(false),
+    typedtuple: tupleParserFactory(true),
+    typed: typedParser,
     ...hardcodes,
     ...parserPrimitives
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "comment-json":
+/***/ "comment-json"
 /*!********************************************!*\
   !*** external {"commonjs":"comment-json"} ***!
   \********************************************/
-/***/ ((module) => {
+(module) {
 
 "use strict";
 module.exports = require("comment-json");
 
-/***/ }),
+/***/ },
 
-/***/ "fs":
+/***/ "fs"
 /*!*********************!*\
   !*** external "fs" ***!
   \*********************/
-/***/ ((module) => {
+(module) {
 
 "use strict";
 module.exports = require("fs");
 
-/***/ }),
+/***/ },
 
-/***/ "path":
+/***/ "path"
 /*!***********************!*\
   !*** external "path" ***!
   \***********************/
-/***/ ((module) => {
+(module) {
 
 "use strict";
 module.exports = require("path");
 
-/***/ })
+/***/ }
 
 /******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
+/******/ 	const __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		const cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
 /******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 		const module = __webpack_module_cache__[moduleId] = {
 /******/ 			// no module.id needed
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
+/******/ 		if (!(moduleId in __webpack_modules__)) {
+/******/ 			delete __webpack_module_cache__[moduleId];
+/******/ 			const e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
@@ -2566,7 +3328,7 @@ module.exports = require("path");
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
 /******/ 		__webpack_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
+/******/ 			const getter = module && module.__esModule ?
 /******/ 				() => (module['default']) :
 /******/ 				() => (module);
 /******/ 			__webpack_require__.d(getter, { a: getter });
@@ -2576,11 +3338,26 @@ module.exports = require("path");
 /******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
+/******/ 		// define getter/value functions for harmony exports
 /******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			if(Array.isArray(definition)) {
+/******/ 				var i = 0;
+/******/ 				while(i < definition.length) {
+/******/ 					var key = definition[i++];
+/******/ 					var binding = definition[i++];
+/******/ 					if(!__webpack_require__.o(exports, key)) {
+/******/ 						if(binding === 0) {
+/******/ 							Object.defineProperty(exports, key, { enumerable: true, value: definition[i++] });
+/******/ 						} else {
+/******/ 							Object.defineProperty(exports, key, { enumerable: true, get: binding });
+/******/ 						}
+/******/ 					} else if(binding === 0) { i++; }
+/******/ 				}
+/******/ 			} else {
+/******/ 				for(var key in definition) {
+/******/ 					if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 						Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 					}
 /******/ 				}
 /******/ 			}
 /******/ 		};
@@ -2595,7 +3372,7 @@ module.exports = require("path");
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
 /******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			if(Symbol.toStringTag) {
 /******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 /******/ 			}
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
@@ -2603,7 +3380,7 @@ module.exports = require("path");
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
+let __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
@@ -2615,54 +3392,67 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _opcode_reader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./opcode_reader */ "./src/opcode_reader.ts");
+/* harmony import */ var _parser_opcode_reader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./parser/opcode_reader */ "./src/parser/opcode_reader.ts");
 /* harmony import */ var comment_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! comment-json */ "comment-json");
 /* harmony import */ var comment_json__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(comment_json__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _jsonschemas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./jsonschemas */ "./src/jsonschemas.ts");
+/* harmony import */ var _parser_jsonschemas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parser/jsonschemas */ "./src/parser/jsonschemas.ts");
 
 
 
 
 
 async function buildFileTypes() {
+    function compilefolder(subdir) {
+        //generate config file metas
+        let files = fs__WEBPACK_IMPORTED_MODULE_0__.readdirSync(path__WEBPACK_IMPORTED_MODULE_1__.resolve(basedir, subdir), {
+            withFileTypes: true
+        });
+        if (files.some((f)=>f.isFile() && !path__WEBPACK_IMPORTED_MODULE_1__.basename(f.name).match(/\.jsonc?$/))) {
+            console.error("non-json files matched, is path wrong?");
+        }
+        let outsubdir = path__WEBPACK_IMPORTED_MODULE_1__.resolve(outdir, subdir);
+        fs__WEBPACK_IMPORTED_MODULE_0__.mkdirSync(outsubdir, {
+            recursive: true
+        });
+        const typedef = comment_json__WEBPACK_IMPORTED_MODULE_3__.parse(fs__WEBPACK_IMPORTED_MODULE_0__.readFileSync(path__WEBPACK_IMPORTED_MODULE_1__.resolve(basedir, "typedef.jsonc"), "utf-8"), undefined, true);
+        for (let file of files){
+            if (file.isDirectory()) {
+                compilefolder(path__WEBPACK_IMPORTED_MODULE_1__.join(subdir, file.name));
+                continue;
+            }
+            if (file.isFile()) {
+                let srcfile = path__WEBPACK_IMPORTED_MODULE_1__.resolve(basedir, subdir, file.name);
+                let objname = path__WEBPACK_IMPORTED_MODULE_1__.parse(srcfile).name;
+                let jsontext = fs__WEBPACK_IMPORTED_MODULE_0__.readFileSync(srcfile, "utf8");
+                const opcodes = comment_json__WEBPACK_IMPORTED_MODULE_3__.parse(jsontext, undefined, true);
+                var typesfile = "// GENERATED DO NOT EDIT\n" + "// This source data is located at '" + path__WEBPACK_IMPORTED_MODULE_1__.relative(outsubdir, srcfile) + "'\n" + "// run `npm run filetypes` to rebuild\n\n";
+                typesfile += "export type " + objname + " = ";
+                try {
+                    typesfile += _parser_opcode_reader__WEBPACK_IMPORTED_MODULE_2__.buildParser(null, opcodes, typedef).getTypescriptType("") + ";\n";
+                } catch (e) {
+                    //console.error(e);
+                    typesfile += "any;\n";
+                    typesfile += "// " + e.toString().replace(/\n/g, "\n//");
+                }
+                //I'm sorry, git made me do this
+                // typesfile = typesfile.replace(/(?<!\r)\n/g, "\r\n");
+                let outfile = path__WEBPACK_IMPORTED_MODULE_1__.resolve(outsubdir, objname + ".d.ts");
+                fs__WEBPACK_IMPORTED_MODULE_0__.writeFileSync(outfile, typesfile);
+            // console.log("would write ", outfile);
+            }
+        }
+    }
     let basedir = path__WEBPACK_IMPORTED_MODULE_1__.resolve("./src/opcodes");
     let outdir = path__WEBPACK_IMPORTED_MODULE_1__.resolve("./generated");
-    //generate config file metas
-    let files = fs__WEBPACK_IMPORTED_MODULE_0__.readdirSync(basedir);
-    if (files.some(f => !path__WEBPACK_IMPORTED_MODULE_1__.basename(f).match(/\.jsonc?$/))) {
-        console.error("non-json files matched, is path wrong?");
-    }
-    const typedef = comment_json__WEBPACK_IMPORTED_MODULE_3__.parse(fs__WEBPACK_IMPORTED_MODULE_0__.readFileSync(path__WEBPACK_IMPORTED_MODULE_1__.resolve(basedir, "typedef.jsonc"), "utf-8"), undefined, true);
-    for (let file of files) {
-        let srcfile = path__WEBPACK_IMPORTED_MODULE_1__.resolve(basedir, file);
-        let objname = path__WEBPACK_IMPORTED_MODULE_1__.parse(srcfile).name;
-        let jsontext = fs__WEBPACK_IMPORTED_MODULE_0__.readFileSync(srcfile, "utf8");
-        const opcodes = comment_json__WEBPACK_IMPORTED_MODULE_3__.parse(jsontext, undefined, true);
-        var typesfile = "// GENERATED DO NOT EDIT\n" +
-            "// This source data is located at '" + path__WEBPACK_IMPORTED_MODULE_1__.relative(outdir, srcfile) + "'\n" +
-            "// run `npm run filetypes` to rebuild\n\n";
-        typesfile += "export type " + objname + " = ";
-        try {
-            typesfile += _opcode_reader__WEBPACK_IMPORTED_MODULE_2__.buildParser(null, opcodes, typedef).getTypescriptType("") + ";\n";
-        }
-        catch (e) {
-            //console.error(e);
-            typesfile += "any;\n";
-            typesfile += "// " + e.toString().replace(/\n/g, "\n//");
-        }
-        //I'm sorry, git made me do this
-        // typesfile = typesfile.replace(/(?<!\r)\n/g, "\r\n");
-        let outfile = path__WEBPACK_IMPORTED_MODULE_1__.resolve(outdir, objname + ".d.ts");
-        fs__WEBPACK_IMPORTED_MODULE_0__.writeFileSync(outfile, typesfile);
-    }
+    compilefolder("");
     //other one off files
-    fs__WEBPACK_IMPORTED_MODULE_0__.writeFileSync(path__WEBPACK_IMPORTED_MODULE_1__.resolve(outdir, "maprenderconfig.schema.json"), JSON.stringify(_jsonschemas__WEBPACK_IMPORTED_MODULE_4__.maprenderConfigSchema, undefined, "\t"));
+    fs__WEBPACK_IMPORTED_MODULE_0__.writeFileSync(path__WEBPACK_IMPORTED_MODULE_1__.resolve(outdir, "maprenderconfig.schema.json"), JSON.stringify(_parser_jsonschemas__WEBPACK_IMPORTED_MODULE_4__.maprenderConfigSchema, undefined, "\t"));
 }
 buildFileTypes();
 
 })();
 
-var __webpack_export_target__ = exports;
+const __webpack_export_target__ = exports;
 for(var __webpack_i__ in __webpack_exports__) __webpack_export_target__[__webpack_i__] = __webpack_exports__[__webpack_i__];
 if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
 /******/ })()
