@@ -43560,11 +43560,11 @@ async function mountSkeletalSkeleton(rootnode, cache, framebaseid) {
         let bone = new three__WEBPACK_IMPORTED_MODULE_0__.Bone();
         let matrix = new three__WEBPACK_IMPORTED_MODULE_0__.Matrix4().fromArray(entry.bonematrix);
         bone.name = "bone_" + id;
-        if (entry.nonskinboneid == 65535) {
+        if (entry.parentbone == 0xffff) {
             rootbones.push(bone);
             matrix.multiply(prematrix);
         } else {
-            bones[entry.nonskinboneid].add(bone);
+            bones[entry.parentbone].add(bone);
         }
         tmp.copy(matrix).decompose(bone.position, bone.quaternion, bone.scale);
         // console.log(id,
@@ -43627,7 +43627,7 @@ function debugkeyframes(data, times, axis) {
     cnv.style.cssText = "position:absolute; top:0px; left:0px; border:1px solid red; background:white;";
 }
 async function parseSkeletalAnimation(cache, animid) {
-    let anim = await cache.engine.getObject("skeletons", animid);
+    let anim = await cache.engine.getObject("skeletalanims", animid);
     let convertedtracks = [];
     //make sure that tracks that should be combined into vectors are adjacent for later
     let animtracks = anim.tracks.sort((a, b)=>{
@@ -43714,9 +43714,6 @@ async function parseSkeletalAnimation(cache, animid) {
         let yvalues = null;
         let zvalues = null;
         let tracktype = actiontypemap[track.type_0to9];
-        //no clue what these offsets are about
-        //(related to variable size encoding of the integers)
-        let boneid = track.boneid < 16000 ? track.boneid - 64 : track.boneid - 16384;
         while(index < animtracks.length){
             let track2 = animtracks[index];
             let t2 = actiontypemap[track2.type_0to9];
@@ -43736,7 +43733,7 @@ async function parseSkeletalAnimation(cache, animid) {
         }
         // if (track.bonetype_01or3 == 3) { continue; }
         // if (boneid >= 6 && boneid <= 8) { continue; }
-        let bonename = "bone_" + boneid;
+        let bonename = "bone_" + track.boneid;
         let defaultvalue = tracktype.t == "scale" ? 1 : 0;
         // let intp = (v: { time: number, value: number[] }[] | null, i: number, t: number) => {
         // 	let v1 = v?.[i]?.value[0] ?? defaultvalue;
@@ -43782,7 +43779,7 @@ async function parseSkeletalAnimation(cache, animid) {
         }
         if (tracktype.t == "scale") {
             //flip the root bone in z direction
-            if (boneid == 0) {
+            if (track.boneid == 0) {
                 for(let i = 0; i < data.length; i += 3){
                     data[i + 2] *= -1;
                 }
@@ -46216,11 +46213,13 @@ class SimpleTexturePacker {
 }
 function defaultMorphId(locmeta) {
     let newid = -1;
-    if (locmeta.morphs_1) {
-        newid = locmeta.morphs_1.options[0] ?? locmeta.morphs_1.default;
+    let morph1 = locmeta.morphs_1 ?? locmeta.morphs_1_v2;
+    let morph2 = locmeta.morphs_2 ?? locmeta.morphs_2_v2;
+    if (morph1) {
+        newid = morph1.options[0] ?? morph1.default;
     }
-    if (locmeta.morphs_2) {
-        newid = locmeta.morphs_2.unk2;
+    if (morph2) {
+        newid = morph2.unk2;
     }
     if (newid == (1 << 15) - 1) {
         newid = -1;
@@ -46243,7 +46242,7 @@ async function resolveMorphedObject(source, id) {
     } else {
         let rawloc = await source.getObject("locs", id);
         let morphedloc = rawloc;
-        if (rawloc.morphs_1 || rawloc.morphs_2) {
+        if (rawloc.morphs_1 || rawloc.morphs_2 || rawloc.morphs_1_v2 || rawloc.morphs_2_v2) {
             let newid = defaultMorphId(rawloc);
             if (newid != -1) {
                 let newloc = await source.getObject("locs", newid);
@@ -52786,6 +52785,9 @@ function serializeAnimset(group) {
     }
     //TODO yikes, this object is not a map
     for (let [key, val] of Object.entries(group)){
+        if (key.startsWith("$")) {
+            continue;
+        }
         if (typeof val == "number") {
             addanim(key, group[key]);
         }
@@ -84020,7 +84022,7 @@ function allParsers() {
         enums: FileParser.fromJson(__webpack_require__(/*! ../opcodes/enums.json */ "./src/opcodes/enums.json")),
         fontmetrics: FileParser.fromJson(__webpack_require__(/*! ../opcodes/fontmetrics.jsonc */ "./src/opcodes/fontmetrics.jsonc")),
         mapscenes: FileParser.fromJson(__webpack_require__(/*! ../opcodes/mapscenes.json */ "./src/opcodes/mapscenes.json")),
-        sequences: FileParser.fromJson(__webpack_require__(/*! ../opcodes/sequences.json */ "./src/opcodes/sequences.json")),
+        sequences: FileParser.fromJson(__webpack_require__(/*! ../opcodes/sequences.jsonc */ "./src/opcodes/sequences.jsonc")),
         framemaps: FileParser.fromJson(__webpack_require__(/*! ../opcodes/framemaps.jsonc */ "./src/opcodes/framemaps.jsonc")),
         frames: FileParser.fromJson(__webpack_require__(/*! ../opcodes/frames.json */ "./src/opcodes/frames.json")),
         animgroupConfigs: FileParser.fromJson(__webpack_require__(/*! ../opcodes/animgroupconfigs.jsonc */ "./src/opcodes/animgroupconfigs.jsonc")),
@@ -84142,7 +84144,7 @@ const cacheFileJsonModes = {
     frames: JsonBasedFile(parse.frames, "unknown", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.standardIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.frames)),
     models: JsonBasedFile(parse.models, "model", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.noArchiveIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.models, _constants__WEBPACK_IMPORTED_MODULE_2__.internalNameFiles.model)),
     oldmodels: JsonBasedFile(parse.oldmodels, "model", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.noArchiveIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.oldmodels)),
-    skeletons: JsonBasedFile(parse.skeletalAnim, "unknown", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.noArchiveIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.skeletalAnims)),
+    skeletalanims: JsonBasedFile(parse.skeletalAnim, "unknown", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.noArchiveIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.skeletalAnims)),
     proctextures: JsonBasedFile(parse.proctexture, "texture", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.noArchiveIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.texturesOldPng)),
     oldproctextures: JsonBasedFile(parse.oldproctexture, "texture", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.singleMinorIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.texturesOldPng, 0)),
     components: JsonBasedFile(parse.components, "component", (0,_filelookup__WEBPACK_IMPORTED_MODULE_3__.standardIndex)(_constants__WEBPACK_IMPORTED_MODULE_2__.cacheMajors.components, _constants__WEBPACK_IMPORTED_MODULE_2__.internalNameFiles.component)),
@@ -86271,28 +86273,26 @@ const hardcodes = {
             }
         };
     },
-    "flipped varushort": function(args, parent, typedef) {
-        // same as varushort, but flips bytes for some reason
-        // idk why this exists, but its used by dbrows table id field
-        // TODO i remember this existing in skeletal anims as well, merge implementations
+    varushortbias: function() {
         return {
-            read (state) {
-                let byte0 = state.buffer.readUint8(state.scan++);
-                if ((byte0 & 0x80) == 0) {
-                    return byte0;
+            read (s) {
+                let firstByte = s.buffer.readUInt8(s.scan++);
+                if ((firstByte & 0x80) == 0) {
+                    return firstByte - 0x40;
                 }
-                let byte1 = state.buffer.readUint8(state.scan++);
-                return byte1 << 7 | byte0 & 0x7f;
+                let secondByte = s.buffer.readUInt8(s.scan++);
+                return ((firstByte & 0x7f) << 8 | secondByte) - 0x4000;
             },
-            write (state, v) {
+            write (s, v) {
                 if (typeof v != "number") {
                     throw new Error("number expected");
                 }
-                if (v < 0x80) {
-                    state.buffer.writeUint8(v, state.scan++);
+                if (v < 0x40 && v >= -0x40) {
+                    s.buffer.writeUInt8(v + 0x40, s.scan);
+                    s.scan += 1;
                 } else {
-                    state.buffer.writeUint8(v & 0x7f | 0x80, state.scan++);
-                    state.buffer.writeUint8(v >> 7, state.scan++);
+                    s.buffer.writeInt16BE((v | 0x8000) + 0x4000, s.scan);
+                    s.scan += 2;
                 }
             },
             getTypescriptType (indent) {
@@ -86659,36 +86659,6 @@ const numberTypes = {
         min: 0,
         max: 2 ** 31 - 1
     },
-    varnullint: {
-        read (s) {
-            let firstWord = s.buffer.readUInt16BE(s.scan);
-            s.scan += 2;
-            if (firstWord == 0x7fff) {
-                return -1;
-            } else if ((firstWord & 0x8000) == 0) {
-                return firstWord;
-            } else {
-                let secondWord = s.buffer.readUInt16BE(s.scan);
-                s.scan += 2;
-                return (firstWord & 0x7fff) << 16 | secondWord;
-            }
-        },
-        write (s, v) {
-            if (v == -1) {
-                s.buffer.writeUint16BE(0x7fff, s.scan);
-                s.scan += 2;
-            } else if (v < 0x8000) {
-                s.buffer.writeUInt16BE(v, s.scan);
-                s.scan += 2;
-            } else {
-                //unsigned right shift to cast to uint32 again
-                s.buffer.writeUint32BE((v | 0x80000000) >>> 0, s.scan);
-                s.scan += 4;
-            }
-        },
-        min: -1,
-        max: 2 ** 31 - 1
-    },
     varint: {
         read (s) {
             let firstWord = s.buffer.readUInt16BE(s.scan);
@@ -86713,6 +86683,38 @@ const numberTypes = {
         },
         min: -(2 ** 30),
         max: 2 ** 30 - 1
+    },
+    // newer encoding that can fit any uint and stores it in 1-5 bytes
+    denseuint: {
+        read (state) {
+            let value = 0;
+            let bitcount = 0;
+            while(true){
+                let byte = state.buffer.readUint8(state.scan++);
+                value |= (byte & 0x7f) << bitcount;
+                bitcount += 7;
+                if ((byte & 0x80) == 0) {
+                    break;
+                }
+            }
+            return value;
+        },
+        write (state, v) {
+            if (typeof v != "number") {
+                throw new Error("number expected");
+            }
+            let value = v;
+            while(value){
+                let byte = value & 0x7f;
+                value >>= 7;
+                if (value) {
+                    byte |= 0x80;
+                }
+                state.buffer.writeUint8(byte, state.scan++);
+            }
+        },
+        min: 0,
+        max: 2 ** 32 - 1
     }
 };
 const parserPrimitives = {
@@ -88489,7 +88491,7 @@ const locationDeps = async (cache, addDep, addHash)=>{
                     }
                 }
             }
-            if (loc.morphs_1 || loc.morphs_2) {
+            if (loc.morphs_1 || loc.morphs_2 || loc.morphs_1_v2 || loc.morphs_2_v2) {
                 let morphid = (0,_3d_mapsquare__WEBPACK_IMPORTED_MODULE_3__.defaultMorphId)(loc);
                 if (morphid != -1) {
                     addDep("loc", morphid, "loc", id);
@@ -88613,7 +88615,7 @@ const skeletonDeps = async (cache, addDep, addHash)=>{
             continue;
         }
         addHash("skeleton", skelindex.minor, skelindex.crc, skelindex.version);
-        let skel = await cache.getObject("skeletons", skelindex.minor);
+        let skel = await cache.getObject("skeletalanims", skelindex.minor);
         addDep("framebase", skel.framebase, "skeleton", skelindex.minor);
     }
 };
@@ -89637,7 +89639,7 @@ async function getSequenceGroups(output, outdir, source) {
             continue;
         }
         try {
-            let anim = await source.getObject("skeletons", skeletalid.minor);
+            let anim = await source.getObject("skeletalanims", skeletalid.minor);
             skeletaltoframemap.set(skeletalid.minor, anim.framebase);
         } catch (e) {
             // currently known error in the bzip2 decompression on file 56.2242
@@ -89846,7 +89848,10 @@ const vartypeToDecoder = {
     category: "categories",
     param: "params",
     dbtable: "dbtables",
-    mapelement: "maplabels"
+    mapelement: "maplabels",
+    frame: "frames",
+    framemap: "framemaps",
+    skeletalanim: "skeletalanims"
 };
 const modeactions = {
     items: "full",
@@ -89899,7 +89904,7 @@ const modeactions = {
     maptiles: "skip",
     maplocations: "skip",
     frames: "skip",
-    skeletons: "skip",
+    skeletalanims: "skip",
     framemaps: "skip",
     sequences: "skip",
     models: "skip",
@@ -89919,7 +89924,7 @@ const modeactions = {
 const extendedmodeactions = {
     maptiles: "typedonly",
     maplocations: "typedonly",
-    frames: "typedonly",
+    // frames: "typedonly",
     framemaps: "typedonly",
     sequences: "typedonly"
 };
@@ -90300,8 +90305,8 @@ function logicalIdToPackedInt(id, mode) {
     if (mode == "component" || mode == "components") {
         return (0,_utils__WEBPACK_IMPORTED_MODULE_7__.packComponent)(id[0], id[1]);
     }
-    if (mode == "frames") {
-        return (0,_utils__WEBPACK_IMPORTED_MODULE_7__.packAnimFrame)(id[0], id[1]);
+    if (mode == "frame" || mode == "frames") {
+        return (0,_utils__WEBPACK_IMPORTED_MODULE_7__.packFrameid)(id[0], id[1]);
     }
     if (mode == "coordgrid") {
         return (0,_utils__WEBPACK_IMPORTED_MODULE_7__.packCoordgrid)(id[0], id[1], id[2]);
@@ -90326,11 +90331,11 @@ function packedIntToLogical(id, mode) {
             r.sub
         ];
     }
-    if (mode == "frames") {
-        let r = (0,_utils__WEBPACK_IMPORTED_MODULE_7__.unpackAnimFrame)(id);
+    if (mode == "frame" || mode == "frames") {
+        let r = (0,_utils__WEBPACK_IMPORTED_MODULE_7__.unpackFrameid)(id);
         return [
-            r.intf,
-            r.sub
+            r.file,
+            r.index
         ];
     }
     if (mode == "coordgrid") {
@@ -90392,6 +90397,14 @@ function iterateTypedJson(objstack, meta, data, nameorindex) {
     if (rsmvtype == "enumvalue") {
         let valueint = objstack.at(0)?.value_type1 ?? objstack.at(0)?.value_type2;
         rsmvtype = _constants__WEBPACK_IMPORTED_MODULE_0__.vartypeReverseMap.get(valueint) ?? "unknown";
+    }
+    if (rsmvtype == "frameref") {
+        let file = objstack.at(-2).framefile;
+        let index = objstack.at(-2).frameindex;
+        if (typeof file == "number" && typeof index == "number") {
+            data = (0,_utils__WEBPACK_IMPORTED_MODULE_7__.packFrameid)(file, index);
+            rsmvtype = "frame";
+        }
     }
     if (rsmvtype == "paramvalue") {
         let paramint = objstack.at(0)?.type?.vartype;
@@ -92947,9 +92960,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   getOrInsert: () => (/* binding */ getOrInsert),
 /* harmony export */   hex2hsl: () => (/* binding */ hex2hsl),
 /* harmony export */   hsl2hex: () => (/* binding */ hsl2hex),
-/* harmony export */   packAnimFrame: () => (/* binding */ packAnimFrame),
 /* harmony export */   packComponent: () => (/* binding */ packComponent),
 /* harmony export */   packCoordgrid: () => (/* binding */ packCoordgrid),
+/* harmony export */   packFrameid: () => (/* binding */ packFrameid),
 /* harmony export */   packMapsquare: () => (/* binding */ packMapsquare),
 /* harmony export */   packedHSL2HSL: () => (/* binding */ packedHSL2HSL),
 /* harmony export */   posmod: () => (/* binding */ posmod),
@@ -92960,10 +92973,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   taskTrickler: () => (/* binding */ taskTrickler),
 /* harmony export */   trickleTasks: () => (/* binding */ trickleTasks),
 /* harmony export */   trickleTasksTwoStep: () => (/* binding */ trickleTasksTwoStep),
-/* harmony export */   unpackAnimFrame: () => (/* binding */ unpackAnimFrame),
 /* harmony export */   unpackComponent: () => (/* binding */ unpackComponent),
 /* harmony export */   unpackCoordgrid: () => (/* binding */ unpackCoordgrid),
 /* harmony export */   unpackDBTableField: () => (/* binding */ unpackDBTableField),
+/* harmony export */   unpackFrameid: () => (/* binding */ unpackFrameid),
 /* harmony export */   unpackMapsquare: () => (/* binding */ unpackMapsquare),
 /* harmony export */   ushortToHalf: () => (/* binding */ ushortToHalf)
 /* harmony export */ });
@@ -93400,18 +93413,18 @@ function unpackComponent(comp) {
         sub
     };
 }
-function packComponent(intf, sub) {
-    return intf << 16 | sub;
+function packFrameid(file, index) {
+    return file << 16 | index;
 }
-function unpackAnimFrame(comp) {
-    let intf = comp >>> 16 & 0xFFFF;
-    let sub = comp & 0xFFFF;
+function unpackFrameid(value) {
+    let file = value >>> 16 & 0xFFFF;
+    let index = value & 0xFFFF;
     return {
-        intf,
-        sub
+        file,
+        index
     };
 }
-function packAnimFrame(intf, sub) {
+function packComponent(intf, sub) {
     return intf << 16 | sub;
 }
 function packMapsquare(x, z) {
@@ -93745,6 +93758,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   TabStrip: () => (/* binding */ TabStrip),
 /* harmony export */   TextureView: () => (/* binding */ TextureView),
 /* harmony export */   useAwaited: () => (/* binding */ useAwaited),
+/* harmony export */   useDisposableMemo: () => (/* binding */ useDisposableMemo),
 /* harmony export */   useEmitterProperty: () => (/* binding */ useEmitterProperty),
 /* harmony export */   useForceUpdate: () => (/* binding */ useForceUpdate),
 /* harmony export */   useForceUpdateDebounce: () => (/* binding */ useForceUpdateDebounce)
@@ -94400,9 +94414,13 @@ _ts_decorate([
     autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
 ], InputCommitted.prototype, "ref", null);
 function DomWrap(p) {
-    let ref = (el)=>{
+    let ref = react__WEBPACK_IMPORTED_MODULE_1__.useCallback((el)=>{
         p.el && el && el.replaceChildren(p.el);
-    };
+        p.containerref?.(el);
+    }, [
+        p.el,
+        p.containerref
+    ]);
     let Tagname = p.tagName ?? "div";
     return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(Tagname, {
         ref: ref,
@@ -94410,7 +94428,7 @@ function DomWrap(p) {
         className: p.className
     }, void 0, false, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\commoncontrols.tsx",
-        lineNumber: 291,
+        lineNumber: 292,
         columnNumber: 9
     }, this);
 }
@@ -94505,6 +94523,29 @@ function useForceUpdateDebounce(delay = 50) {
         ref
     ]);
     return ref.current;
+}
+function useDisposableMemo(factory, deps) {
+    const cacheRef = react__WEBPACK_IMPORTED_MODULE_1__.useRef(null);
+    const lastDepsRef = react__WEBPACK_IMPORTED_MODULE_1__.useRef(null);
+    // Check if dependencies have changed (or if it's the initial render)
+    const depsChanged = !lastDepsRef.current || deps.length !== lastDepsRef.current.length || deps.some((dep, i)=>!Object.is(dep, lastDepsRef.current[i]));
+    if (depsChanged) {
+        if (cacheRef.current) {
+            cacheRef.current.dispose();
+        }
+        cacheRef.current = factory();
+        lastDepsRef.current = deps;
+    }
+    // handle unmount
+    react__WEBPACK_IMPORTED_MODULE_1__.useEffect(()=>{
+        return ()=>{
+            if (cacheRef.current) {
+                cacheRef.current.dispose();
+                cacheRef.current = null;
+            }
+        };
+    }, []);
+    return cacheRef.current;
 }
 
 
@@ -95006,23 +95047,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   parseCacheIdentifier: () => (/* binding */ parseCacheIdentifier)
 /* harmony export */ });
 /* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ "./node_modules/react/jsx-dev-runtime.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var autobind_decorator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! autobind-decorator */ "./node_modules/autobind-decorator/lib/esm/index.js");
-/* harmony import */ var _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../cache/sqlitewasm */ "./src/cache/sqlitewasm.ts");
-/* harmony import */ var _cache__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../cache */ "./src/cache/index.ts");
-/* harmony import */ var idb_keyval__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! idb-keyval */ "./node_modules/idb-keyval/dist/index.js");
-/* harmony import */ var _3d_modeltothree__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../3d/modeltothree */ "./src/3d/modeltothree.ts");
-/* harmony import */ var _commoncontrols__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./commoncontrols */ "./src/viewer/commoncontrols.tsx");
-/* harmony import */ var _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../cache/openrs2loader */ "./src/cache/openrs2loader.ts");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../utils */ "./src/utils.ts");
-/* harmony import */ var _cache_downloader__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../cache/downloader */ "./src/cache/downloader.ts");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var _cache_autocache__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../cache/autocache */ "./src/cache/autocache.ts");
-/* harmony import */ var _scriptrunner__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../scriptrunner */ "./src/scriptrunner.ts");
-/* harmony import */ var _headless_api__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../headless/api */ "./src/headless/api.ts");
-/* harmony import */ var _multitab__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./multitab */ "./src/viewer/multitab.ts");
+/* harmony import */ var _threejsrender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./threejsrender */ "./src/viewer/threejsrender.ts");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var autobind_decorator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! autobind-decorator */ "./node_modules/autobind-decorator/lib/esm/index.js");
+/* harmony import */ var _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../cache/sqlitewasm */ "./src/cache/sqlitewasm.ts");
+/* harmony import */ var _cache__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../cache */ "./src/cache/index.ts");
+/* harmony import */ var idb_keyval__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! idb-keyval */ "./node_modules/idb-keyval/dist/index.js");
+/* harmony import */ var _3d_modeltothree__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../3d/modeltothree */ "./src/3d/modeltothree.ts");
+/* harmony import */ var _commoncontrols__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./commoncontrols */ "./src/viewer/commoncontrols.tsx");
+/* harmony import */ var _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../cache/openrs2loader */ "./src/cache/openrs2loader.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../utils */ "./src/utils.ts");
+/* harmony import */ var _cache_downloader__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../cache/downloader */ "./src/cache/downloader.ts");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _cache_autocache__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../cache/autocache */ "./src/cache/autocache.ts");
+/* harmony import */ var _scriptrunner__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../scriptrunner */ "./src/scriptrunner.ts");
+/* harmony import */ var _headless_api__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../headless/api */ "./src/headless/api.ts");
+/* harmony import */ var _multitab__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./multitab */ "./src/viewer/multitab.ts");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
@@ -95037,6 +95079,7 @@ function _ts_decorate(decorators, target, key, desc) {
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 ;
+
 
 
 
@@ -95072,17 +95115,17 @@ async function downloadBlob(name, blob) {
     setTimeout(()=>URL.revokeObjectURL(url), 1);
 }
 function OpenRs2IdSelector(p) {
-    let [advanced, setAdvanced] = react__WEBPACK_IMPORTED_MODULE_1__.useState(false);
-    let [yearFilter, setYearfilter] = react__WEBPACK_IMPORTED_MODULE_1__.useState("");
-    let [gameFilter, setGameFilter] = react__WEBPACK_IMPORTED_MODULE_1__.useState("runescape");
-    let [envFilter, setEnvfilter] = react__WEBPACK_IMPORTED_MODULE_1__.useState("live");
-    let [langFilter, setLangfilter] = react__WEBPACK_IMPORTED_MODULE_1__.useState("en");
-    let relevantCaches = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_7__.useAwaited)(()=>{
+    let [advanced, setAdvanced] = react__WEBPACK_IMPORTED_MODULE_2__.useState(false);
+    let [yearFilter, setYearfilter] = react__WEBPACK_IMPORTED_MODULE_2__.useState("");
+    let [gameFilter, setGameFilter] = react__WEBPACK_IMPORTED_MODULE_2__.useState("runescape");
+    let [envFilter, setEnvfilter] = react__WEBPACK_IMPORTED_MODULE_2__.useState("live");
+    let [langFilter, setLangfilter] = react__WEBPACK_IMPORTED_MODULE_2__.useState("en");
+    let relevantCaches = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.useAwaited)(()=>{
         if (!advanced) {
             return null;
         }
         return (async ()=>{
-            let relevantcaches = await (0,_cache_openrs2loader__WEBPACK_IMPORTED_MODULE_8__.validOpenrs2Caches)("", "");
+            let relevantcaches = await (0,_cache_openrs2loader__WEBPACK_IMPORTED_MODULE_9__.validOpenrs2Caches)("", "");
             let games = [];
             let years = [];
             let langs = [];
@@ -95140,7 +95183,7 @@ function OpenRs2IdSelector(p) {
         let id = +idstring;
         // negative id means latest-x cache
         if (id <= 0) {
-            id = (await _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_8__.Openrs2CacheSource.getRecentCache(-id)).id;
+            id = (await _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_9__.Openrs2CacheSource.getRecentCache(-id)).id;
         }
         p.onSelect(id);
     };
@@ -95149,9 +95192,9 @@ function OpenRs2IdSelector(p) {
         month: 'short',
         year: 'numeric'
     });
-    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
         children: [
-            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_7__.StringInput, {
+            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.StringInput, {
                 initialid: p.initialid + "",
                 onChange: enterCacheId
             }, void 0, false, {
@@ -95169,7 +95212,7 @@ function OpenRs2IdSelector(p) {
                 lineNumber: 115,
                 columnNumber: 18
             }, this),
-            relevantCaches && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+            relevantCaches && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
                 children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                     style: {
                         overflowY: "auto",
@@ -95316,14 +95359,14 @@ function OpenRs2IdSelector(p) {
         columnNumber: 3
     }, this);
 }
-class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_2__.Component {
     constructor(p){
         super(p);
         this.state = {
             lastFolderOpen: null
         };
         if (!this.props.noReopen) {
-            idb_keyval__WEBPACK_IMPORTED_MODULE_5__.get("lastfolderopen").then((f)=>{
+            idb_keyval__WEBPACK_IMPORTED_MODULE_6__.get("lastfolderopen").then((f)=>{
                 if (f) {
                     this.setState({
                         lastFolderOpen: f
@@ -95354,7 +95397,7 @@ class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
         if (!electron) {
             return;
         }
-        let dir = await electron.ipcRenderer.invoke("openfolder", path__WEBPACK_IMPORTED_MODULE_11__.resolve(process.env.ProgramData, "jagex/runescape"));
+        let dir = await electron.ipcRenderer.invoke("openfolder", path__WEBPACK_IMPORTED_MODULE_12__.resolve(process.env.ProgramData, "jagex/runescape"));
         if (!dir.canceled) {
             this.props.onOpen({
                 type: "autofs",
@@ -95413,7 +95456,7 @@ class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
             }));
             if (folderhandles.length == 1 && filehandles.length == 0) {
                 console.log("stored folder " + folderhandles[0].name);
-                idb_keyval__WEBPACK_IMPORTED_MODULE_5__.set("lastfolderopen", folderhandles[0]);
+                idb_keyval__WEBPACK_IMPORTED_MODULE_6__.set("lastfolderopen", folderhandles[0]);
                 this.props.onOpen({
                     type: "autohandle",
                     handle: folderhandles[0]
@@ -95434,9 +95477,9 @@ class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
         });
     }
     render() {
-        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
             children: [
-                electron && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+                electron && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
                             children: "Native local RS3 cache"
@@ -95468,7 +95511,7 @@ class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
                     lineNumber: 269,
                     columnNumber: 6
                 }, this),
-                electron && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+                electron && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
                             children: "Jagex Servers"
@@ -95565,31 +95608,31 @@ class CacheSelector extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }
 }
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "onDragOver", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "clickOpen", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "clickOpenNative", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "clickOpenLive", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "clickReopen", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "onFileDrop", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], CacheSelector.prototype, "openOpenrs2Cache", null);
 function CacheDragNDropHelp() {
     const canfsapi = typeof FileSystemHandle != "undefined";
-    let [open, setOpen] = react__WEBPACK_IMPORTED_MODULE_1__.useState(false);
-    let [mode, setmode] = react__WEBPACK_IMPORTED_MODULE_1__.useState(canfsapi ? "fsapi" : "blob");
-    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    let [open, setOpen] = react__WEBPACK_IMPORTED_MODULE_2__.useState(false);
+    let [mode, setmode] = react__WEBPACK_IMPORTED_MODULE_2__.useState(canfsapi ? "fsapi" : "blob");
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
         children: [
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                 children: [
@@ -95617,7 +95660,7 @@ function CacheDragNDropHelp() {
                     display: "flex",
                     flexDirection: "column"
                 },
-                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                             children: "Drop and drop the cache files into this window."
@@ -95666,17 +95709,17 @@ function CacheDragNDropHelp() {
         columnNumber: 3
     }, this);
 }
-class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
+class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_10__.TypedEmitter {
     source = null;
     sourceIdentifier = null;
     sceneCache = null;
-    renderer = null;
     openedTabs = [];
     activeTabIndex = -1;
     renderable = null;
     rootElement;
+    renderer;
     useServiceWorker;
-    multitab = (0,_multitab__WEBPACK_IMPORTED_MODULE_15__.multitabManager)(this);
+    multitab = (0,_multitab__WEBPACK_IMPORTED_MODULE_16__.multitabManager)(this);
     constructor(rootelement, useServiceWorker){
         super();
         this.rootElement = rootelement;
@@ -95690,10 +95733,13 @@ class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
         }
         navigation.addEventListener("navigate", this.onNavigate);
         this.setStateFromUrl(new URL(document.location.href));
+        let cnv = document.createElement("canvas");
+        this.renderer = new _threejsrender__WEBPACK_IMPORTED_MODULE_1__.ThreeJsRenderer(cnv);
     }
     close() {
         this.source?.close();
         this.multitab.close();
+        this.renderer.dispose();
         navigation.removeEventListener("navigate", this.onNavigate);
     }
     async openCache(source) {
@@ -95703,9 +95749,9 @@ class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
             this.source = cache;
             this.sourceIdentifier = await getCacheIdentifier(cache);
             try {
-                let engine = await _3d_modeltothree__WEBPACK_IMPORTED_MODULE_6__.EngineCache.create(cache);
+                let engine = await _3d_modeltothree__WEBPACK_IMPORTED_MODULE_7__.EngineCache.create(cache);
                 console.log("engine loaded", cache.getBuildNr());
-                let scene = await _3d_modeltothree__WEBPACK_IMPORTED_MODULE_6__.ThreejsSceneCache.create(engine);
+                let scene = await _3d_modeltothree__WEBPACK_IMPORTED_MODULE_7__.ThreejsSceneCache.create(engine);
                 this.sceneCache = scene;
                 globalThis.sceneCache = scene;
                 globalThis.engine = engine;
@@ -95720,7 +95766,7 @@ class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
         }
     }
     closeCache() {
-        idb_keyval__WEBPACK_IMPORTED_MODULE_5__.del("openedcache");
+        idb_keyval__WEBPACK_IMPORTED_MODULE_6__.del("openedcache");
         localStorage.rsmv_openedcache = "";
         navigator.serviceWorker?.ready.then((q)=>q.active?.postMessage({
                 type: "sethandle",
@@ -95747,11 +95793,6 @@ class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
             this.renderable = null;
             this.emit("statechange", undefined);
         }
-    }
-    setRenderer(renderer) {
-        this.renderer = renderer;
-        this.emit("statechange", undefined);
-        this.fixRenderable();
     }
     canRender() {
         return !!this.source && !!this.sceneCache && !!this.renderer;
@@ -95889,22 +95930,22 @@ class UIContext extends _utils__WEBPACK_IMPORTED_MODULE_9__.TypedEmitter {
     }
 }
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], UIContext.prototype, "openCache", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], UIContext.prototype, "closeCache", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], UIContext.prototype, "onNavigate", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], UIContext.prototype, "objectClick", null);
 _ts_decorate([
-    autobind_decorator__WEBPACK_IMPORTED_MODULE_2__.boundMethod
+    autobind_decorator__WEBPACK_IMPORTED_MODULE_3__.boundMethod
 ], UIContext.prototype, "openFile", null);
-const UIRootContext = /*#__PURE__*/ react__WEBPACK_IMPORTED_MODULE_1__.createContext(null);
-const UIEngineContext = /*#__PURE__*/ react__WEBPACK_IMPORTED_MODULE_1__.createContext(null);
+const UIRootContext = /*#__PURE__*/ react__WEBPACK_IMPORTED_MODULE_2__.createContext(null);
+const UIEngineContext = /*#__PURE__*/ react__WEBPACK_IMPORTED_MODULE_2__.createContext(null);
 function parseCacheIdentifier(cacheidentifier) {
     let parts = cacheidentifier.split("-");
     let type = parts.shift();
@@ -95950,8 +95991,8 @@ function parseCacheIdentifier(cacheidentifier) {
     return null;
 }
 async function getCacheIdentifier(cache) {
-    if (cache instanceof _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_3__.WasmGameCacheLoader) {
-        let version = await (0,_cache__WEBPACK_IMPORTED_MODULE_4__.getCacheVersionFingerprint)(cache);
+    if (cache instanceof _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_4__.WasmGameCacheLoader) {
+        let version = await (0,_cache__WEBPACK_IMPORTED_MODULE_5__.getCacheVersionFingerprint)(cache);
         if (version > +new Date(2000, 0) / 1000) {
             let cachedate = new Date(version * 1000);
             let datetext = cachedate.toLocaleDateString("en-GB", {
@@ -95964,13 +96005,13 @@ async function getCacheIdentifier(cache) {
             return `upload-${version}`;
         }
     }
-    if (cache instanceof _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_8__.Openrs2CacheSource) {
+    if (cache instanceof _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_9__.Openrs2CacheSource) {
         return `openrs2-${cache.meta.id}`;
     }
-    if (cache instanceof _cache_downloader__WEBPACK_IMPORTED_MODULE_10__.CacheDownloader) {
+    if (cache instanceof _cache_downloader__WEBPACK_IMPORTED_MODULE_11__.CacheDownloader) {
         return `live`;
     }
-    if (cache instanceof _headless_api__WEBPACK_IMPORTED_MODULE_14__.GameCacheLoader) {
+    if (cache instanceof _headless_api__WEBPACK_IMPORTED_MODULE_15__.GameCacheLoader) {
         return `fs-${cache.cachedir}`;
     }
     return null;
@@ -95983,7 +96024,7 @@ async function openSavedCache(source, remember) {
                 mode: "read"
             });
             if (perm == "granted") {
-                let wasmcache = new _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_3__.WasmGameCacheLoader();
+                let wasmcache = new _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_4__.WasmGameCacheLoader();
                 // let fs = new UIScriptFS(null);
                 // await fs.setSaveDirHandle(source.handle);
                 // cache = await selectFsCache(fs);
@@ -95994,23 +96035,23 @@ async function openSavedCache(source, remember) {
         } else {
             // Files don't survive json round-trip, but i believe they might have survived indexeddb round-trip
             if (Object.values(source.blobs).every((q)=>q instanceof File)) {
-                let wasmcache = new _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_3__.WasmGameCacheLoader();
+                let wasmcache = new _cache_sqlitewasm__WEBPACK_IMPORTED_MODULE_4__.WasmGameCacheLoader();
                 wasmcache.giveBlobs(source.blobs);
                 cache = wasmcache;
             }
         }
     }
     if (source.type == "openrs2") {
-        cache = await _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_8__.Openrs2CacheSource.fromId(+source.cachename);
+        cache = await _cache_openrs2loader__WEBPACK_IMPORTED_MODULE_9__.Openrs2CacheSource.fromId(+source.cachename);
     }
     if (electron && source.type == "autofs") {
-        let fs = new _scriptrunner__WEBPACK_IMPORTED_MODULE_13__.CLIScriptFS(source.location);
-        cache = await (0,_cache_autocache__WEBPACK_IMPORTED_MODULE_12__.selectFsCache)(fs, {
+        let fs = new _scriptrunner__WEBPACK_IMPORTED_MODULE_14__.CLIScriptFS(source.location);
+        cache = await (0,_cache_autocache__WEBPACK_IMPORTED_MODULE_13__.selectFsCache)(fs, {
             writable: source.writable
         });
     }
     if (source.type == "live") {
-        cache = new _cache_downloader__WEBPACK_IMPORTED_MODULE_10__.CacheDownloader();
+        cache = new _cache_downloader__WEBPACK_IMPORTED_MODULE_11__.CacheDownloader();
     }
     if (remember) {
         // globalThis.cachewrite = datastore.set("openedcache", source);
@@ -103193,7 +103234,7 @@ const uiScripts = {
 };
 function ScriptsUI(p) {
     let ctx = react__WEBPACK_IMPORTED_MODULE_4__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_8__.UIRootContext);
-    let initialscript = "test";
+    let initialscript = "extract";
     let initialargs = "";
     if (typeof p.initialId == "string") {
         [initialscript, initialargs] = p.initialId.split(/(?<=^[^:]*):/);
@@ -103558,7 +103599,7 @@ function SceneRawModel(p) {
                 initialid: id ?? initid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 84,
+                lineNumber: 85,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
@@ -103567,20 +103608,20 @@ function SceneRawModel(p) {
                         children: "Enter a model id."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 87,
+                        lineNumber: 88,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                         children: "This lookup shows raw models on their own."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 88,
+                        lineNumber: 89,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 86,
+                lineNumber: 87,
                 columnNumber: 17
             }, this),
             data && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -103590,7 +103631,7 @@ function SceneRawModel(p) {
                         text: data?.assetName
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 93,
+                        lineNumber: 94,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.JsonDisplay, {
@@ -103600,26 +103641,26 @@ function SceneRawModel(p) {
                         }
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 94,
+                        lineNumber: 95,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.JsonDisplay, {
                         obj: data?.info.info
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 95,
+                        lineNumber: 96,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 92,
+                lineNumber: 93,
                 columnNumber: 17
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 83,
+        lineNumber: 84,
         columnNumber: 9
     }, this);
 }
@@ -103637,7 +103678,7 @@ function SceneLocation(p) {
                 initialid: initid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 109,
+                lineNumber: 110,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
@@ -103646,20 +103687,20 @@ function SceneLocation(p) {
                         children: "Enter a location id or search by name."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 112,
+                        lineNumber: 113,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                         children: "Locations make up just about everything in the world that isn't a player or NPC."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 113,
+                        lineNumber: 114,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 111,
+                lineNumber: 112,
                 columnNumber: 17
             }, this),
             model && data?.anims && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.LabeledInput, {
@@ -103675,17 +103716,17 @@ function SceneLocation(p) {
                             children: k
                         }, k, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                            lineNumber: 119,
+                            lineNumber: 120,
                             columnNumber: 69
                         }, this))
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                    lineNumber: 118,
+                    lineNumber: 119,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 117,
+                lineNumber: 118,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -103695,7 +103736,7 @@ function SceneLocation(p) {
                         text: data?.assetName
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 124,
+                        lineNumber: 125,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_configview__WEBPACK_IMPORTED_MODULE_13__.StructView, {
@@ -103703,19 +103744,19 @@ function SceneLocation(p) {
                         meta: _parser_jsondecoders__WEBPACK_IMPORTED_MODULE_10__.parse.loc.parser.getJsonSchema()
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 125,
+                        lineNumber: 126,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 123,
+                lineNumber: 124,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 108,
+        lineNumber: 109,
         columnNumber: 9
     }, this);
 }
@@ -103806,7 +103847,7 @@ function ItemCameraMode({ meta, centery }) {
                 onClick: reset
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 230,
+                lineNumber: 231,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -103821,39 +103862,11 @@ function ItemCameraMode({ meta, centery }) {
                             step: 1
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                            lineNumber: 231,
+                            lineNumber: 232,
                             columnNumber: 25
                         }, this),
                         "Rotate x: ",
                         rotx
-                    ]
-                }, void 0, true, {
-                    fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                    lineNumber: 231,
-                    columnNumber: 18
-                }, this)
-            }, void 0, false, {
-                fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 231,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
-                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
-                    children: [
-                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
-                            type: "range",
-                            value: roty,
-                            onChange: (e)=>setroty(+e.currentTarget.value),
-                            min: 0,
-                            max: 2048,
-                            step: 1
-                        }, void 0, false, {
-                            fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                            lineNumber: 232,
-                            columnNumber: 25
-                        }, this),
-                        "Rotate y: ",
-                        roty
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
@@ -103870,8 +103883,8 @@ function ItemCameraMode({ meta, centery }) {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
                             type: "range",
-                            value: rotz,
-                            onChange: (e)=>setrotz(+e.currentTarget.value),
+                            value: roty,
+                            onChange: (e)=>setroty(+e.currentTarget.value),
                             min: 0,
                             max: 2048,
                             step: 1
@@ -103880,8 +103893,8 @@ function ItemCameraMode({ meta, centery }) {
                             lineNumber: 233,
                             columnNumber: 25
                         }, this),
-                        "Rotate z: ",
-                        rotz
+                        "Rotate y: ",
+                        roty
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
@@ -103898,18 +103911,18 @@ function ItemCameraMode({ meta, centery }) {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
                             type: "range",
-                            value: zoom,
-                            onChange: (e)=>setzoom(+e.currentTarget.value),
-                            min: 10,
-                            max: 10000,
+                            value: rotz,
+                            onChange: (e)=>setrotz(+e.currentTarget.value),
+                            min: 0,
+                            max: 2048,
                             step: 1
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
                             lineNumber: 234,
                             columnNumber: 25
                         }, this),
-                        "Zoom: ",
-                        zoom
+                        "Rotate z: ",
+                        rotz
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
@@ -103926,18 +103939,18 @@ function ItemCameraMode({ meta, centery }) {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
                             type: "range",
-                            value: translatex,
-                            onChange: (e)=>settranslatex(+e.currentTarget.value),
-                            min: -200,
-                            max: 208,
+                            value: zoom,
+                            onChange: (e)=>setzoom(+e.currentTarget.value),
+                            min: 10,
+                            max: 10000,
                             step: 1
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
                             lineNumber: 235,
                             columnNumber: 25
                         }, this),
-                        "Translate x: ",
-                        translatex
+                        "Zoom: ",
+                        zoom
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
@@ -103954,18 +103967,18 @@ function ItemCameraMode({ meta, centery }) {
                     children: [
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
                             type: "range",
-                            value: translatey,
-                            onChange: (e)=>settranslatey(+e.currentTarget.value),
+                            value: translatex,
+                            onChange: (e)=>settranslatex(+e.currentTarget.value),
                             min: -200,
-                            max: 200,
+                            max: 208,
                             step: 1
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
                             lineNumber: 236,
                             columnNumber: 25
                         }, this),
-                        "Translate y: ",
-                        translatey
+                        "Translate x: ",
+                        translatex
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
@@ -103976,11 +103989,39 @@ function ItemCameraMode({ meta, centery }) {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
                 lineNumber: 236,
                 columnNumber: 13
+            }, this),
+            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
+                    children: [
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
+                            type: "range",
+                            value: translatey,
+                            onChange: (e)=>settranslatey(+e.currentTarget.value),
+                            min: -200,
+                            max: 200,
+                            step: 1
+                        }, void 0, false, {
+                            fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
+                            lineNumber: 237,
+                            columnNumber: 25
+                        }, this),
+                        "Translate y: ",
+                        translatey
+                    ]
+                }, void 0, true, {
+                    fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
+                    lineNumber: 237,
+                    columnNumber: 18
+                }, this)
+            }, void 0, false, {
+                fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
+                lineNumber: 237,
+                columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 229,
+        lineNumber: 230,
         columnNumber: 9
     }, this);
 }
@@ -104008,14 +104049,14 @@ function SceneItem(p) {
                 initialid: initid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 262,
+                lineNumber: 263,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                 children: "Enter an item id or search by name."
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 264,
+                lineNumber: 265,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104028,7 +104069,7 @@ function SceneItem(p) {
                         onClick: (e)=>setenablecam(!enablecam)
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 267,
+                        lineNumber: 268,
                         columnNumber: 17
                     }, this),
                     enablecam && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(ItemCameraMode, {
@@ -104036,14 +104077,14 @@ function SceneItem(p) {
                         centery: centery
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 268,
+                        lineNumber: 269,
                         columnNumber: 31
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.RawTextDisplay, {
                         text: data?.assetName
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 269,
+                        lineNumber: 270,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_configview__WEBPACK_IMPORTED_MODULE_13__.StructView, {
@@ -104051,25 +104092,34 @@ function SceneItem(p) {
                         meta: _parser_jsondecoders__WEBPACK_IMPORTED_MODULE_10__.parse.item.parser.getJsonSchema()
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 270,
+                        lineNumber: 271,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 266,
+                lineNumber: 267,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 261,
+        lineNumber: 262,
         columnNumber: 9
     }, this);
 }
 function SceneNpc(p) {
     const ctx = react__WEBPACK_IMPORTED_MODULE_5__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_6__.UIEngineContext);
     const [data, model, id, setId] = useAsyncModelData(ctx, _3d_scene__WEBPACK_IMPORTED_MODULE_9__.npcToModel);
+    // useEffect(() => {
+    //     if (ctx && id?.head) {
+    //         let el = {
+    //             getSceneElements() { return { options: { hideFloor: true } } }
+    //         };
+    //         ctx.renderer.addSceneElement(el);
+    //         return () => ctx.renderer.removeSceneElement(el);
+    //     }
+    // }, [ctx, id?.head]);
     const forceUpdate = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.useForceUpdate)();
     const initid = id ?? (0,_utils__WEBPACK_IMPORTED_MODULE_2__.checkObject)(p.initialId, {
         id: "number",
@@ -104090,14 +104140,14 @@ function SceneNpc(p) {
                 initialid: initid.id
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 286,
+                lineNumber: 297,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                 children: "Enter an NPC id or search by name."
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 288,
+                lineNumber: 299,
                 columnNumber: 17
             }, this),
             model && data && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
@@ -104111,14 +104161,14 @@ function SceneNpc(p) {
                             })
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 290,
+                        lineNumber: 301,
                         columnNumber: 39
                     }, this),
                     "Head"
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 290,
+                lineNumber: 301,
                 columnNumber: 32
             }, this),
             model && data && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.LabeledInput, {
@@ -104134,17 +104184,17 @@ function SceneNpc(p) {
                             children: k
                         }, k, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                            lineNumber: 294,
+                            lineNumber: 305,
                             columnNumber: 69
                         }, this))
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                    lineNumber: 293,
+                    lineNumber: 304,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 292,
+                lineNumber: 303,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104154,7 +104204,7 @@ function SceneNpc(p) {
                         text: data?.assetName
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 299,
+                        lineNumber: 310,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_configview__WEBPACK_IMPORTED_MODULE_13__.StructView, {
@@ -104162,19 +104212,19 @@ function SceneNpc(p) {
                         meta: _parser_jsondecoders__WEBPACK_IMPORTED_MODULE_10__.parse.npc.parser.getJsonSchema()
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 300,
+                        lineNumber: 311,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 298,
+                lineNumber: 309,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 285,
+        lineNumber: 296,
         columnNumber: 9
     }, this);
 }
@@ -104189,7 +104239,7 @@ function SceneSpotAnim(p) {
                 initialid: initid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 312,
+                lineNumber: 323,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
@@ -104198,20 +104248,20 @@ function SceneSpotAnim(p) {
                         children: "Enter a spotanim id."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 315,
+                        lineNumber: 326,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                         children: "Spotanims are visual effects that are usually temporary and require an extra model that is not part of any loc, npc or player."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 316,
+                        lineNumber: 327,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 314,
+                lineNumber: 325,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104221,7 +104271,7 @@ function SceneSpotAnim(p) {
                         text: data?.assetName
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 320,
+                        lineNumber: 331,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_configview__WEBPACK_IMPORTED_MODULE_13__.StructView, {
@@ -104229,19 +104279,19 @@ function SceneSpotAnim(p) {
                         meta: _parser_jsondecoders__WEBPACK_IMPORTED_MODULE_10__.parse.spotAnims.parser.getJsonSchema()
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 321,
+                        lineNumber: 332,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 319,
+                lineNumber: 330,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 311,
+        lineNumber: 322,
         columnNumber: 9
     }, this);
 }
@@ -104357,7 +104407,7 @@ function SceneMaterialIsh(p) {
                 initialid: initid.id
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 397,
+                lineNumber: 408,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104372,14 +104422,14 @@ function SceneMaterialIsh(p) {
                                 onChange: modechange
                             }, void 0, false, {
                                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                lineNumber: 399,
+                                lineNumber: 410,
                                 columnNumber: 24
                             }, this),
                             "Material"
                         ]
                     }, void 0, true, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 399,
+                        lineNumber: 410,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
@@ -104392,14 +104442,14 @@ function SceneMaterialIsh(p) {
                                 onChange: modechange
                             }, void 0, false, {
                                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                lineNumber: 400,
+                                lineNumber: 411,
                                 columnNumber: 24
                             }, this),
                             "Underlay"
                         ]
                     }, void 0, true, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 400,
+                        lineNumber: 411,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
@@ -104412,14 +104462,14 @@ function SceneMaterialIsh(p) {
                                 onChange: modechange
                             }, void 0, false, {
                                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                lineNumber: 401,
+                                lineNumber: 412,
                                 columnNumber: 24
                             }, this),
                             "Overlay"
                         ]
                     }, void 0, true, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 401,
+                        lineNumber: 412,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("label", {
@@ -104432,20 +104482,20 @@ function SceneMaterialIsh(p) {
                                 onChange: modechange
                             }, void 0, false, {
                                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                lineNumber: 402,
+                                lineNumber: 413,
                                 columnNumber: 24
                             }, this),
                             "Texture"
                         ]
                     }, void 0, true, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 402,
+                        lineNumber: 413,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 398,
+                lineNumber: 409,
                 columnNumber: 13
             }, this),
             id == null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
@@ -104454,20 +104504,20 @@ function SceneMaterialIsh(p) {
                         children: "Enter a material id."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 406,
+                        lineNumber: 417,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
                         children: "Materials define how a piece of geometry looks, besides the color texture they also define how the model interacts with light to create highlights and reflections."
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 407,
+                        lineNumber: 418,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 405,
+                lineNumber: 416,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104489,13 +104539,13 @@ function SceneMaterialIsh(p) {
                                             el: el
                                         }, void 0, false, {
                                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                            lineNumber: 417,
+                                            lineNumber: 428,
                                             columnNumber: 102
                                         }, this));
                                     }
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                    lineNumber: 414,
+                                    lineNumber: 425,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -104512,60 +104562,60 @@ function SceneMaterialIsh(p) {
                                     ]
                                 }, void 0, true, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                    lineNumber: 420,
+                                    lineNumber: 431,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.TextureView, {
                                     img: img.img0
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                                    lineNumber: 421,
+                                    lineNumber: 432,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, name, true, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                            lineNumber: 412,
+                            lineNumber: 423,
                             columnNumber: 21
                         }, this)),
                     data?.info.overlay && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.JsonDisplay, {
                         obj: data?.info.overlay
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 424,
+                        lineNumber: 435,
                         columnNumber: 40
                     }, this),
                     data?.info.underlay && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.JsonDisplay, {
                         obj: data?.info.underlay
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 425,
+                        lineNumber: 436,
                         columnNumber: 41
                     }, this),
                     data?.info.materialname && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.RawTextDisplay, {
                         text: data?.info.materialname
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 426,
+                        lineNumber: 437,
                         columnNumber: 45
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.JsonDisplay, {
                         obj: data?.info.obj
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                        lineNumber: 427,
+                        lineNumber: 438,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-                lineNumber: 410,
+                lineNumber: 421,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\tabs\\simplemodes.tsx",
-        lineNumber: 396,
+        lineNumber: 407,
         columnNumber: 9
     }, this);
 }
@@ -104642,8 +104692,8 @@ function compatCancelAnimationFrame(id) {
     }
 }
 class ThreeJsRenderer extends _utils__WEBPACK_IMPORTED_MODULE_2__.TypedEmitter {
-    renderer;
     canvas;
+    renderer;
     skybox = null;
     scene;
     modelnode;
@@ -106304,15 +106354,26 @@ function ObjectLink(p) {
     let value = p.value ?? p.prop?.primitive ?? -1;
     let valuename = p.valuename ?? p.prop?.valuename;
     let ctx = react__WEBPACK_IMPORTED_MODULE_1__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_2__.UIRootContext);
-    let match = _scripts_jsonindexer__WEBPACK_IMPORTED_MODULE_12__.vartypeToDecoder[rsmvtype];
     if (typeof value != "number") {
         throw new Error("Objectlink primitive type number expected");
     }
+    if (rsmvtype == "" || rsmvtype == "unknown" || rsmvtype == 'int') {
+        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+            children: value
+        }, void 0, false, {
+            fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
+            lineNumber: 457,
+            columnNumber: 16
+        }, this);
+    }
+    let match = _scripts_jsonindexer__WEBPACK_IMPORTED_MODULE_12__.vartypeToDecoder[rsmvtype];
     let index = match ? (0,_scripts_jsonindexer__WEBPACK_IMPORTED_MODULE_12__.packedIntToLogical)(value, match) : [
         value
     ];
     let fileid = (0,_tabs_browse__WEBPACK_IMPORTED_MODULE_11__.makeFileId)(rsmvtype, index);
-    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+        className: "mv-objectentry",
+        title: valuename,
         children: [
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
                 className: match && "mv-filelink",
@@ -106321,31 +106382,19 @@ function ObjectLink(p) {
                 children: fileid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 461,
+                lineNumber: 465,
                 columnNumber: 9
             }, this),
             valuename ? ` (${valuename})` : null
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-        lineNumber: 460,
+        lineNumber: 464,
         columnNumber: 12
     }, this);
 }
 function renderPrimitive(prop) {
     if (typeof prop.primitive == "number") {
-        if (prop.rsmvtype == "" || prop.rsmvtype == "unknown" || prop.rsmvtype == 'int') {
-            return {
-                isbig: false,
-                el: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
-                    children: prop.primitive
-                }, void 0, false, {
-                    fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                    lineNumber: 469,
-                    columnNumber: 40
-                }, this)
-            };
-        }
         if (prop.rsmvtype == "color") {
             return {
                 isbig: false,
@@ -106609,7 +106658,8 @@ function renderPrimitive(prop) {
 function StructDataView(p) {
     let [maxarraylen, setmaxarraylen] = react__WEBPACK_IMPORTED_MODULE_1__.useState(1000);
     let ctx = react__WEBPACK_IMPORTED_MODULE_1__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_2__.UIRootContext);
-    let source = react__WEBPACK_IMPORTED_MODULE_1__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_2__.UIEngineContext)?.source;
+    let engine = react__WEBPACK_IMPORTED_MODULE_1__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_2__.UIEngineContext);
+    let source = engine?.source;
     let data = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_9__.useAwaited)(async ()=>{
         return source && deepLinkJson(new DeepLinkContext(source), "root", p.data, p.meta);
     }, [
@@ -106638,12 +106688,12 @@ function StructDataView(p) {
                             value: `Show more(${i} / ${prop.array.length})`
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                            lineNumber: 541,
+                            lineNumber: 542,
                             columnNumber: 25
                         }, this)
                     }, "truncated", false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                        lineNumber: 540,
+                        lineNumber: 541,
                         columnNumber: 35
                     }, this));
                     break;
@@ -106656,7 +106706,7 @@ function StructDataView(p) {
                     children: child.el
                 }, i, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                    lineNumber: 548,
+                    lineNumber: 549,
                     columnNumber: 31
                 }, this));
             }
@@ -106665,7 +106715,7 @@ function StructDataView(p) {
                 children: children
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 550,
+                lineNumber: 551,
                 columnNumber: 22
             }, this);
             return {
@@ -106688,14 +106738,14 @@ function StructDataView(p) {
                         children: q.name
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                        lineNumber: 558,
+                        lineNumber: 559,
                         columnNumber: 27
                     }, this) : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                         className: "mv-proplist__name",
                         children: q.name
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                        lineNumber: 559,
+                        lineNumber: 560,
                         columnNumber: 27
                     }, this);
                     if (child.isbig) {
@@ -106707,7 +106757,7 @@ function StructDataView(p) {
                             ]
                         }, i, true, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                            lineNumber: 562,
+                            lineNumber: 563,
                             columnNumber: 29
                         }, this);
                     } else {
@@ -106719,20 +106769,20 @@ function StructDataView(p) {
                                     children: child.el
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                                    lineNumber: 571,
+                                    lineNumber: 572,
                                     columnNumber: 33
                                 }, this)
                             ]
                         }, i, true, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                            lineNumber: 569,
+                            lineNumber: 570,
                             columnNumber: 29
                         }, this);
                     }
                 })
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 554,
+                lineNumber: 555,
                 columnNumber: 22
             }, this);
             return {
@@ -106746,7 +106796,7 @@ function StructDataView(p) {
                 children: "NULL"
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 579,
+                lineNumber: 580,
                 columnNumber: 36
             }, this)
         };
@@ -106755,7 +106805,7 @@ function StructDataView(p) {
         children: "Loading..."
     }, void 0, false, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-        lineNumber: 582,
+        lineNumber: 583,
         columnNumber: 48
     }, this);
 }
@@ -106781,7 +106831,7 @@ function StructView(p) {
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 593,
+                lineNumber: 594,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(StructDataView, {
@@ -106789,14 +106839,14 @@ function StructView(p) {
                 meta: p.meta
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 594,
+                lineNumber: 595,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h3", {
                 children: "Referenced By"
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 595,
+                lineNumber: 596,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(ReferencesView, {
@@ -106804,13 +106854,13 @@ function StructView(p) {
                 id: fileid
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 596,
+                lineNumber: 597,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-        lineNumber: 592,
+        lineNumber: 593,
         columnNumber: 9
     }, this);
 }
@@ -106863,12 +106913,12 @@ function ReferencesView(p) {
                                 prop: q
                             }, void 0, false, {
                                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                                lineNumber: 632,
+                                lineNumber: 633,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                            lineNumber: 631,
+                            lineNumber: 632,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -106876,33 +106926,33 @@ function ReferencesView(p) {
                             children: q.name
                         }, void 0, false, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                            lineNumber: 634,
+                            lineNumber: 635,
                             columnNumber: 13
                         }, this)
                     ]
                 }, i, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                    lineNumber: 630,
+                    lineNumber: 631,
                     columnNumber: 37
                 }, this)),
             refs && refs.length == 0 && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
                 children: "No references found"
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 636,
+                lineNumber: 637,
                 columnNumber: 38
             }, this),
             !refs && valid && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
                 children: "Loading..."
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-                lineNumber: 637,
+                lineNumber: 638,
                 columnNumber: 28
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\viewers\\configview.tsx",
-        lineNumber: 629,
+        lineNumber: 630,
         columnNumber: 12
     }, this);
 }
@@ -119961,7 +120011,7 @@ module.exports = "[\"struct\",\r\n\t[\"version\",\"ubyte\"],\r\n\t[\"width\",\"u
 (module) {
 
 "use strict";
-module.exports = "{\r\n    \"$type\":\"dbrow_definition\",\r\n    \"0x03\":{\"name\":\"rows\",\"read\":[\"struct\",\r\n        [\"columncount\",\"ubyte\"],\r\n        [\"columndata\",[\"nullarray\",\"ubyte\",255,[\"struct\",\r\n            [\"columnid\",[\"ref\",\"$opcode\",[0,6]]],\r\n            [\"flags\",[\"ref\",\"$opcode\",[6,2]]],\r\n            [\"subcount\",\"ubyte\"],\r\n            [\"subtypes\",[\"array\",[\"ref\",\"subcount\"],\"varushort\",\"type\"]],\r\n            [\"rows\",[\"array\",\"varushort\",[\"array\",[\"ref\",\"subcount\"],[\"match\",[\"ref\",\"subtypes\",\"$index\"],{\r\n                //in theory there are about 10 possible non-int types (either string or long), but only these are observed\r\n                \"0x24\":\"string\",\r\n                \"other\":\"int\"\r\n            }],\"dbvalue\"]]]\r\n        ]]\r\n    ]]},\r\n    \"0x04\":{\"name\":\"table\",\"read\":[\"flipped varushort\"],\"type\":\"dbtable\"}\r\n}";
+module.exports = "{\r\n    \"$type\":\"dbrow_definition\",\r\n    \"0x03\":{\"name\":\"rows\",\"read\":[\"struct\",\r\n        [\"columncount\",\"ubyte\"],\r\n        [\"columndata\",[\"nullarray\",\"ubyte\",255,[\"struct\",\r\n            [\"columnid\",[\"ref\",\"$opcode\",[0,6]]],\r\n            [\"flags\",[\"ref\",\"$opcode\",[6,2]]],\r\n            [\"subcount\",\"ubyte\"],\r\n            [\"subtypes\",[\"array\",[\"ref\",\"subcount\"],\"varushort\",\"type\"]],\r\n            [\"rows\",[\"array\",\"varushort\",[\"array\",[\"ref\",\"subcount\"],[\"match\",[\"ref\",\"subtypes\",\"$index\"],{\r\n                //in theory there are about 10 possible non-int types (either string or long), but only these are observed\r\n                \"0x24\":\"string\",\r\n                \"other\":\"int\"\r\n            }],\"dbvalue\"]]]\r\n        ]]\r\n    ]]},\r\n    \"0x04\":{\"name\":\"table\",\"read\":\"denseuint\",\"type\":\"dbtable\"}\r\n}";
 
 /***/ },
 
@@ -120082,7 +120132,7 @@ module.exports = "[\"struct\",\r\n    [\"type\",\"ubyte\"],\r\n    [\"sprite\",[
 (module) {
 
 "use strict";
-module.exports = "[\"struct\",\r\n\t[\"datalen\",\"ushort\"],\r\n\t[\"unkheader\",[\"match\",{\"datalen=0xffff\":\"ubyte\",\"other\":0}]],\r\n\t[\"data\",[\"chunkedarray\",[\"match\",{\"datalen=0xffff\":\"ushort\",\"other\":[\"ref\",\"datalen\"]}],\r\n\t\t[[\"type\",\"ubyte\"]],\r\n\t\t[[\"unknown\",\"bool\"]],\r\n\t\t[[\"unknown_always_FFFF\",\"ushort\"]],\r\n\t\t[[\"length\",\"varushort\"]],\r\n\t\t[[\"data\",[\"array\",[\"ref\",\"length\"],\"varushort\"]]]\r\n\t]],\r\n\t[\"skeleton\",[\"chunkedarray\",\"ushort\",\r\n\t\t[\r\n\t\t\t[\"parentbone\",\"ubyte\"],//TODO this is wrong, this byte is part of dataq from the previous bone\r\n\t\t\t[\"nonskinboneid\",\"ushort\"],\r\n\t\t\t[\"bonematrix\",[\"array\",16,\"float\"]],\r\n\t\t\t//unknown, always the same for all bones in a skeleton\r\n\t\t\t[\"dataq\",[\"buffer\",11,\"hex\"]]\r\n\t\t]\r\n\t]],\r\n\t\r\n\t//exact use unknown\r\n\t//contains more entries that the skeleton list\r\n\t//seems to be a list of \"short le\"\r\n\t//highest possible rounded up to 16 for first bone, always counts down to 2 on bones after that\r\n\t//but also some times starts at 0 or a different number and not always unique\r\n\t[\"activebones\",[\"buffer\",[\"bytesleft\"],\"hex\"]]\r\n]";
+module.exports = "[\"struct\",\r\n\t[\"datalen\",\"ushort\"],\r\n\t[\"unkheader\",[\"match\",{\"datalen=0xffff\":\"ubyte\",\"other\":0}]],\r\n\t[\"data\",[\"chunkedarray\",[\"match\",{\"datalen=0xffff\":\"ushort\",\"other\":[\"ref\",\"datalen\"]}],\r\n\t\t[[\"type\",\"ubyte\"]],\r\n\t\t[[\"unknown\",\"bool\"]],\r\n\t\t[[\"unknown_always_FFFF\",\"ushort\"]],\r\n\t\t[[\"length\",\"varushort\"]],\r\n\t\t[[\"data\",[\"array\",[\"ref\",\"length\"],\"varushort\"]]]\r\n\t]],\r\n\t[\"bonecount\",\"ushort\"],\r\n\t[\"unkbyte\",\"ubyte\"],\r\n\t[\"skeleton\",[\"chunkedarray\",[\"ref\",\"bonecount\"],\r\n\t\t[\r\n\t\t\t[\"parentbone\",\"ushort\"],\r\n\t\t\t[\"bonematrix\",[\"array\",16,\"float\"]],\r\n\t\t\t// nearly always identical for bones in the same skeleton, but different between skeletons\r\n\t\t\t[\"unkbuffer\",[\"buffer\",12,\"hex\"]],\r\n\t\t\t[\"bonematrix2\",[\"opt\",\"unkbyte==2\",[\"array\",16,\"float\"]]],\r\n\t\t\t[\"unkextra0\",[\"opt\",\"unkbyte==2\",\"ubyte\"]],\r\n\t\t\t[\"unkextra1\",[\"opt\",\"unkbyte==2\",\"float\"]],\r\n\t\t\t[\"unkextra2\",[\"opt\",\"unkbyte==2\",\"ubyte\"]],\r\n\t\t\t[\"unkextra3\",[\"opt\",\"unkbyte==2\",\"ushort\"]],\r\n\t\t\t[\"unkextra4\",[\"opt\",\"unkbyte==2\",\"ushort\"]],\r\n\t\t\t[\"unkextra5\",[\"opt\",\"unkbyte==2\",\"ushort\"]]\r\n\t\t]\r\n\t]],\r\n\t\r\n\t// seems to contain a list of (most) bone ids\r\n\t[\"unkarr\",[\"array\",\"ushort\",\"ushort\"]],\r\n\t//always 0\r\n\t[\"foot\",\"ubyte\"]\r\n]";
 
 /***/ },
 
@@ -120093,7 +120143,7 @@ module.exports = "[\"struct\",\r\n\t[\"datalen\",\"ushort\"],\r\n\t[\"unkheader\
 (module) {
 
 "use strict";
-module.exports = "[\"struct\",\r\n\t[\"header_always_2\",\"ubyte\"],\r\n\t[\"framemap_id\",\"ushort\"],\r\n\t[\"flags\",[\"array\",\"ushort\",\"ubyte\"]],\r\n\t[\"animdata\",[\"buffer\",[\"bytesleft\"],\"ubyte\"]]\r\n]";
+module.exports = "[\"struct\",\r\n\t[\"header_always_2\",\"ubyte\"],\r\n\t[\"framemap_id\",\"ushort\",\"framemap\"],\r\n\t[\"flags\",[\"array\",\"ushort\",\"ubyte\"]],\r\n\t[\"animdata\",[\"buffer\",[\"bytesleft\"],\"ubyte\"]]\r\n]";
 
 /***/ },
 
@@ -120423,7 +120473,7 @@ module.exports = "{\r\n\t\"0x01\": { \"name\":                     \"text\", \"r
 (module) {
 
 "use strict";
-module.exports = "{\r\n\t\"0x01\": { \"name\":               \"text\", \"read\": \"string\" },\r\n\t\"0x02\": { \"name\":            \"replies\", \"read\": [\"array\",\"ubyte\",\"ushort\",\"chatphrase\"]},\r\n\t\"0x03\": { \"name\":            \"inserts\", \"read\": [\"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"type\",\"ushort\"],\r\n\t\t[\"pickEnum\",[\"opt\",[\"type\",0],\"ushort\"],\"enum\"],\r\n\t\t[\"pickTtem\",[\"opt\",[\"type\",1],\"true\"]],\r\n\t\t[\"skillLevel\",[\"opt\",[\"type\",4],\"ushort\"],\"stat\"],\r\n\t\t[\"varplayerEnum\",[\"opt\",[\"type\",6],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"varbit\",\"ushort\",\"varbit\"]\r\n\t\t]]],\r\n\t\t[\"varplayer\",[\"opt\",[\"type\",8],\"ushort\"],\"var_player\"],\r\n\t\t[\"varbit\",[\"opt\",[\"type\",9],\"ushort\"],\"varbit\"],\r\n\t\t[\"pickTradeableItem\",[\"opt\",[\"type\",10],\"true\"]],\r\n\t\t[\"skillLevelEnum\",[\"opt\",[\"type\",11],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"skill\",\"ushort\",\"stat\"]\r\n\t\t]]],\r\n\t\t[\"friendsChatCount\",[\"opt\",[\"type\",12],\"true\"]],\r\n\t\t[\"varWorld\",[\"opt\",[\"type\",14],\"ushort\"],\"var_world\"],\r\n\t\t[\"combatlevel\",[\"opt\",[\"type\",15],\"true\"]],\r\n\t\t[\"varbitEnumstring\",[\"opt\",[\"type\",16],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"varbit\",\"ushort\",\"varbit\"]\r\n\t\t]]]\r\n\t]]},\r\n\t\"0x04\": { \"name\":      \"nonsearchable\", \"read\": \"true\" },\r\n\t\"0x05\": { \"name\":         \"inserts_v2\", \"read\": [\"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"type\",\"ushort\"],\r\n\t\t[\"pickEnum\",[\"opt\",[\"type\",0],[\"flipped varushort\"]],\"enum\"],\r\n\t\t[\"pickTtem\",[\"opt\",[\"type\",1],\"true\"]],\r\n\t\t[\"skillLevel\",[\"opt\",[\"type\",4],[\"flipped varushort\"]],\"stat\"],\r\n\t\t[\"varplayerEnum\",[\"opt\",[\"type\",6],[\"struct\",\r\n\t\t\t[\"enum\",[\"flipped varushort\"],\"enum\"],\r\n\t\t\t[\"varbit\",[\"flipped varushort\"],\"varbit\"]\r\n\t\t]]],\r\n\t\t[\"varplayer\",[\"opt\",[\"type\",8],[\"flipped varushort\"]],\"var_player\"],\r\n\t\t[\"varbit\",[\"opt\",[\"type\",9],[\"flipped varushort\"]],\"varbit\"],\r\n\t\t[\"pickTradeableItem\",[\"opt\",[\"type\",10],\"true\"]],\r\n\t\t[\"skillLevelEnum\",[\"opt\",[\"type\",11],[\"struct\",\r\n\t\t\t[\"enum\",[\"flipped varushort\"],\"enum\"],\r\n\t\t\t[\"skill\",[\"flipped varushort\"],\"stat\"]\r\n\t\t]]],\r\n\t\t[\"friendsChatCount\",[\"opt\",[\"type\",12],\"true\"]],\r\n\t\t[\"varWorld\",[\"opt\",[\"type\",14],[\"flipped varushort\"]],\"var_world\"],\r\n\t\t[\"combatlevel\",[\"opt\",[\"type\",15],\"true\"]],\r\n\t\t[\"varbitEnumstring\",[\"opt\",[\"type\",16],[\"struct\",\r\n\t\t\t[\"enum\",[\"flipped varushort\"],\"enum\"],\r\n\t\t\t[\"varbit\",[\"flipped varushort\"],\"varbit\"]\r\n\t\t]]]\r\n\t]]},\r\n}";
+module.exports = "{\r\n\t\"0x01\": { \"name\":               \"text\", \"read\": \"string\" },\r\n\t\"0x02\": { \"name\":            \"replies\", \"read\": [\"array\",\"ubyte\",\"ushort\",\"chatphrase\"]},\r\n\t\"0x03\": { \"name\":            \"inserts\", \"read\": [\"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"type\",\"ushort\"],\r\n\t\t[\"pickEnum\",[\"opt\",[\"type\",0],\"ushort\"],\"enum\"],\r\n\t\t[\"pickTtem\",[\"opt\",[\"type\",1],\"true\"]],\r\n\t\t[\"skillLevel\",[\"opt\",[\"type\",4],\"ushort\"],\"stat\"],\r\n\t\t[\"varplayerEnum\",[\"opt\",[\"type\",6],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"varbit\",\"ushort\",\"varbit\"]\r\n\t\t]]],\r\n\t\t[\"varplayer\",[\"opt\",[\"type\",8],\"ushort\"],\"var_player\"],\r\n\t\t[\"varbit\",[\"opt\",[\"type\",9],\"ushort\"],\"varbit\"],\r\n\t\t[\"pickTradeableItem\",[\"opt\",[\"type\",10],\"true\"]],\r\n\t\t[\"skillLevelEnum\",[\"opt\",[\"type\",11],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"skill\",\"ushort\",\"stat\"]\r\n\t\t]]],\r\n\t\t[\"friendsChatCount\",[\"opt\",[\"type\",12],\"true\"]],\r\n\t\t[\"varWorld\",[\"opt\",[\"type\",14],\"ushort\"],\"var_world\"],\r\n\t\t[\"combatlevel\",[\"opt\",[\"type\",15],\"true\"]],\r\n\t\t[\"varbitEnumstring\",[\"opt\",[\"type\",16],[\"struct\",\r\n\t\t\t[\"enum\",\"ushort\",\"enum\"],\r\n\t\t\t[\"varbit\",\"ushort\",\"varbit\"]\r\n\t\t]]]\r\n\t]]},\r\n\t\"0x05\": { \"name\":         \"inserts_v2\", \"read\": [\"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"type\",\"ushort\"],\r\n\t\t[\"pickEnum\",[\"opt\",[\"type\",0],\"denseuint\"],\"enum\"],\r\n\t\t[\"pickTtem\",[\"opt\",[\"type\",1],\"true\"]],\r\n\t\t[\"skillLevel\",[\"opt\",[\"type\",4],\"ubyte\"],\"stat\"],\r\n\t\t[\"varplayerEnum\",[\"opt\",[\"type\",6],[\"struct\",\r\n\t\t\t[\"enum\",\"denseuint\",\"enum\"],\r\n\t\t\t[\"varbit\",\"denseuint\",\"varbit\"]\r\n\t\t]]],\r\n\t\t[\"varplayer\",[\"opt\",[\"type\",8],\"denseuint\"],\"var_player\"],\r\n\t\t[\"varbit\",[\"opt\",[\"type\",9],\"denseuint\"],\"varbit\"],\r\n\t\t[\"pickTradeableItem\",[\"opt\",[\"type\",10],\"true\"]],\r\n\t\t[\"skillLevelEnum\",[\"opt\",[\"type\",11],[\"struct\",\r\n\t\t\t[\"enum\",\"denseuint\",\"enum\"],\r\n\t\t\t[\"skill\",\"ubyte\",\"stat\"]\r\n\t\t]]],\r\n\t\t[\"friendsChatCount\",[\"opt\",[\"type\",12],\"true\"]],\r\n\t\t[\"varWorld\",[\"opt\",[\"type\",14],\"denseuint\"],\"var_world\"],\r\n\t\t[\"combatlevel\",[\"opt\",[\"type\",15],\"true\"]],\r\n\t\t[\"varbitEnumstring\",[\"opt\",[\"type\",16],[\"struct\",\r\n\t\t\t[\"enum\",\"denseuint\",\"enum\"],\r\n\t\t\t[\"varbit\",\"denseuint\",\"varbit\"]\r\n\t\t]]]\r\n\t]]},\r\n\t\"0x04\": { \"name\":      \"nonsearchable\", \"read\": \"true\" }\r\n}";
 
 /***/ },
 
@@ -120438,14 +120488,14 @@ module.exports = "[\"struct\",\n\t[\"$minorindex\",\"-1\"],\n\t[\"cachemajors\",
 
 /***/ },
 
-/***/ "./src/opcodes/sequences.json"
-/*!************************************!*\
-  !*** ./src/opcodes/sequences.json ***!
-  \************************************/
+/***/ "./src/opcodes/sequences.jsonc"
+/*!*************************************!*\
+  !*** ./src/opcodes/sequences.jsonc ***!
+  \*************************************/
 (module) {
 
 "use strict";
-module.exports = "{\r\n\t\"0x01\": { \"name\":                              \"frames\", \"read\": [\"chunkedarray\",\"unsigned short\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"framelength\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"frameindex\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"framefile\",\"unsigned short\"]]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]},\r\n\t\"0x02\": { \"name\":                          \"unknown_02\", \"read\": \"ushort\" },\r\n\t\"0x03\": { \"name\":                          \"unknown_03\", \"read\": [\"array\",\"ubyte\",\"ubyte\"] },\r\n\t\"0x04\": { \"name\":                          \"unknown_04\", \"read\": \"true\" },\r\n\t\"0x05\": { \"name\":                          \"unknown_05\", \"read\": \"ubyte\" },\r\n\t\"0x06\": { \"name\":                          \"unknown_06\", \"read\": \"ushort\" },\r\n\t\"0x07\": { \"name\":                          \"unknown_07\", \"read\": \"ushort\" },\r\n\t\"0x08\": { \"name\":                          \"unknown_08\", \"read\": \"ubyte\" },\r\n\t\"0x09\": { \"name\":                          \"unknown_09\", \"read\": \"ubyte\" },\r\n\t\"0x0A\": { \"name\":                          \"unknown_0A\", \"read\": \"ubyte\" },\r\n\t\"0x0B\": { \"name\":                          \"unknown_0B\", \"read\": \"ubyte\" },\r\n\t\"0x0C\": { \"name\":                          \"unknown_0C\", \"read\": [\"chunkedarray\",\"ubyte\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"framelength\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"frameidlow\",\"unsigned short\"]]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]},\r\n\t\"0x0D\": { \"name\":                          \"unknown_0D\", \"read\": [\"array\",\"unsigned short\",[\"struct\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"$keys\",\"unsigned byte\"],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"default\",[\"opt\",[\"$keys\",0,\"eqnot\"],\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"weirdbyte\",[\"opt\",[\"$keys\",0,\"eqnot\"],\"unsigned byte\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"extras\",[\"array\",[\"ref\",\"$keys\",null,-1],\"unsigned short\"]] \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]]},\r\n\t\"0x0E\": { \"name\":                          \"unknown_0E\", \"read\": \"true\" },\r\n\t\"0x0F\": { \"name\":                          \"unknown_0F\", \"read\": \"true\" },\r\n\t\"0x10\": { \"name\":                          \"unknown_10\", \"read\": \"true\" },\r\n\t\"0x11\": { \"name\":                          \"unknown_11\", \"read\": \"ubyte\" },\r\n\t\"0x12\": { \"name\":                          \"unknown_12\", \"read\": \"true\" },\r\n\t\"0x13\": { \"name\":                          \"unknown_13\", \"read\": \"unsigned short\" },\r\n\t\"0x14\": { \"name\":                          \"unknown_14\", \"read\": [\"buffer\",5,\"hex\"] },\r\n\t\"0x16\": { \"name\":                          \"unknown_16\", \"read\": \"unsigned byte\" },\r\n\t\"0x18\": { \"name\":                          \"unknown_18\", \"read\": \"unsigned short\" },\r\n\t\"0x19\": { \"name\":                  \"skeletal_animation\", \"read\": \"unsigned short\" },\r\n\t\"0x1a\": { \"name\":                      \"skeletal_range\", \"read\": [\"tuple\",\"ushort\",\"ushort\"] },\t\r\n\t\"0x1b\": { \"name\":                          \"unknown_1B\", \"read\": \"ubyte\" },\t\r\n\r\n\t\"0x70\": { \"name\":                          \"unknown_70\", \"read\": [\"chunkedarray\",\"unsigned short\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"intlow\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"maybe_file\",\"unsigned short\"]]] },\r\n\t\"0x77\": { \"name\":                          \"unknown_77\", \"read\": [\"tuple\",\"unsigned short\",\"unsigned byte\"] },\r\n\t\"0x78\": { \"name\":                          \"unknown_78\", \"read\": [\"tuple\",\"unsigned short\",\"unsigned short\",\"unsigned short\"] },\r\n\r\n\t\"0xF9\": { \"name\":                               \"extra\", \"read\": \"extrasmap\" }\r\n}";
+module.exports = "{\r\n\t\"0x01\": { \"name\":                              \"frames\", \"read\": [\"chunkedarray\",\"unsigned short\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"framelength\",\"unsigned short\"]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t],[\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"frameindex\",\"unsigned short\"]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t],[\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"framefile\",\"unsigned short\"],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"frame\",[\"typed\",null,\"frameref\"]]//just here to make json viewer generate a link\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]},\r\n\t\"0x02\": { \"name\":                          \"unknown_02\", \"read\": \"ushort\" },\r\n\t\"0x03\": { \"name\":                          \"unknown_03\", \"read\": [\"array\",\"ubyte\",\"ubyte\"] },\r\n\t\"0x04\": { \"name\":                          \"unknown_04\", \"read\": \"true\" },\r\n\t\"0x05\": { \"name\":                          \"unknown_05\", \"read\": \"ubyte\" },\r\n\t\"0x06\": { \"name\":                               \"equip\", \"read\": \"ushort\",\"type\":\"obj\" },\r\n\t\"0x07\": { \"name\":                              \"equip2\", \"read\": \"ushort\",\"type\":\"obj\" },\r\n\t\"0x08\": { \"name\":                          \"unknown_08\", \"read\": \"ubyte\" },\r\n\t\"0x09\": { \"name\":                          \"unknown_09\", \"read\": \"ubyte\" },\r\n\t\"0x0A\": { \"name\":                          \"unknown_0A\", \"read\": \"ubyte\" },\r\n\t\"0x0B\": { \"name\":                          \"unknown_0B\", \"read\": \"ubyte\" },\r\n\t\"0x0C\": { \"name\":                          \"unknown_0C\", \"read\": [\"chunkedarray\",\"ubyte\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"framelength\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"frameidlow\",\"unsigned short\"]]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]},\r\n\t\"0x0D\": { \"name\":                              \"sounds\", \"read\": [\"array\",\"unsigned short\",[\"struct\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"$keys\",\"unsigned byte\"],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"default\",[\"opt\",\"$keys!=0\",\"unsigned short\"],\"sound\"],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"unk\",[\"opt\",\"$keys!=0\",\"unsigned byte\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[\"variants\",[\"array\",[\"ref\",\"$keys\",null,-1],\"unsigned short\",\"sound\"]]\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t]]},\r\n\t\"0x0E\": { \"name\":                          \"unknown_0E\", \"read\": \"true\" },\r\n\t\"0x0F\": { \"name\":                          \"unknown_0F\", \"read\": \"true\" },\r\n\t\"0x10\": { \"name\":                          \"unknown_10\", \"read\": \"true\" },\r\n\t\"0x11\": { \"name\":                          \"unknown_11\", \"read\": \"ubyte\" },\r\n\t\"0x12\": { \"name\":                          \"unknown_12\", \"read\": \"true\" },\r\n\t\"0x13\": { \"name\":                          \"unknown_13\", \"read\": \"unsigned short\" },\r\n\t\"0x14\": { \"name\":                          \"unknown_14\", \"read\": [\"buffer\",5,\"hex\"] },\r\n\t\"0x16\": { \"name\":                          \"unknown_16\", \"read\": \"unsigned byte\" },\r\n\t\"0x18\": { \"name\":                          \"unknown_18\", \"read\": \"unsigned short\" },\r\n\t\"0x19\": { \"name\":                  \"skeletal_animation\", \"read\": \"unsigned short\", \"type\":\"skeletalanim\" },\r\n\t\"0x1a\": { \"name\":                      \"skeletal_range\", \"read\": [\"tuple\",\"ushort\",\"ushort\"] },\t\r\n\t\"0x1b\": { \"name\":                          \"unknown_1B\", \"read\": \"ubyte\" },\t\r\n\r\n\t\"0x70\": { \"name\":                          \"unknown_70\", \"read\": [\"chunkedarray\",\"unsigned short\",\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"intlow\",\"unsigned short\"]],\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[[\"maybe_file\",\"unsigned short\"]]] },\r\n\t\"0x77\": { \"name\":                          \"unknown_77\", \"read\": [\"tuple\",\"unsigned short\",\"unsigned byte\"] },\r\n\t\"0x78\": { \"name\":                          \"unknown_78\", \"read\": [\"tuple\",\"unsigned short\",\"unsigned short\",\"unsigned short\"] },\r\n\r\n\t\"0xF9\": { \"name\":                               \"extra\", \"read\": \"extrasmap\" }\r\n}";
 
 /***/ },
 
@@ -120456,7 +120506,7 @@ module.exports = "{\r\n\t\"0x01\": { \"name\":                              \"fr
 (module) {
 
 "use strict";
-module.exports = "[\"struct\",\n\t[\"header\",\"ubyte\"],\n\t[\"framebase\",\"ushort\"],\n\t[\"endtime\",\"uint\"],\n\t[\"unk_always0\",\"ubyte\"],\n\t[\"tracks\",[\"array\",\"ushort\",[\"struct\",\n\t\t//seems to correlate to action type \n\t\t//1=standard bone(1-9) 2=unknown(7x 3, 14x 7, 14x 8), 3=unknown(10-15), 3=unknown(16)\n\t\t[\"unk_1to4\",\"ubyte\"],\n\t\t//boneid+0x40, or boneid+0x4040 if 2 byte//TODO is this smartShortBias?\n\t\t[\"boneid\",\"varushort\"],\n\t\t//animation type 1-3=rotatexyz, 4-6=translatexyz 7-9=scalexyz\n\t\t[\"type_0to9\",\"ubyte\"],\n\t\t[\"$packetlength\",\"ushort\"],\n\t\t//interpolation mode? 0=euler, 1=linear, 3lin/log???\n\t\t//0=rotation (1,2,3), 1=translation (4,5,6,13,14,15,some 16), 3=scale (7,8,9,10,11,12,some 16,some 3)\n\t\t[\"bonetype_01or3\",\"ubyte\"],\n\t\t[\"always0\",\"ushort\"],\n\t\t[\"flag2\",\"bool\"],\n\t\t[\"chunks\",[\"array\",[\"ref\",\"$packetlength\"],[\"struct\",\n\t\t\t[\"time\",\"ushort\"],\n\t\t\t[\"value\",[\"array\",5,\"float\"]]\n\t\t]]]\n\t]]]\n]";
+module.exports = "[\"struct\",\r\n\t[\"header\",\"ubyte\"],\r\n\t[\"framebase\",\"ushort\",\"framemap\"],\r\n\t[\"endtime\",\"uint\"],\r\n\t[\"unk_always0\",\"ubyte\"],\r\n\t[\"tracks\",[\"array\",\"ushort\",[\"struct\",\r\n\t\t//seems to correlate to action type \r\n\t\t//1=standard bone(1-9) 2=unknown(7x 3, 14x 7, 14x 8), 3=unknown(10-15), 3=unknown(16)\r\n\t\t[\"unk_1to4\",\"ubyte\"],\r\n\t\t[\"boneid\",[\"varushortbias\"]],\r\n\t\t//animation type 1-3=rotatexyz, 4-6=translatexyz 7-9=scalexyz\r\n\t\t[\"type_0to9\",\"ubyte\"],\r\n\t\t[\"$packetlength\",\"ushort\"],\r\n\t\t//interpolation mode? 0=euler, 1=linear, 3lin/log???\r\n\t\t//0=rotation (1,2,3), 1=translation (4,5,6,13,14,15,some 16), 3=scale (7,8,9,10,11,12,some 16,some 3)\r\n\t\t[\"bonetype_01or3\",\"ubyte\"],\r\n\t\t[\"always0\",\"ushort\"],\r\n\t\t[\"flag2\",\"bool\"],\r\n\t\t[\"chunks\",[\"array\",[\"ref\",\"$packetlength\"],[\"struct\",\r\n\t\t\t[\"time\",\"ushort\"],\r\n\t\t\t[\"value\",[\"array\",5,\"float\"]]\r\n\t\t]]]\r\n\t]]]\r\n]";
 
 /***/ },
 
@@ -120511,7 +120561,7 @@ module.exports = "[\"struct\",\r\n\t[\"parent\",\"ushort\",\"stylesheet\"],\r\n\
 (module) {
 
 "use strict";
-module.exports = "{\r\n    \"variable unsigned long\":   \"varuint\",\r\n    \"variable unsigned int\":    \"varuint\",\r\n    \"variable unsigned short\":  \"varushort\",\r\n    \"unsigned variable long\":   \"varuint\",\r\n    \"unsigned variable int\":    \"varuint\",\r\n    \"unsigned variable short\":  \"varushort\",\r\n\r\n    \"variable long\":    \"varint\",\r\n    \"variable int\":     \"varint\",\r\n    \"variable short\":   \"varshort\",\r\n\r\n    \"unsigned long\":    \"uint\",\r\n    \"unsigned int\":     \"uint\",\r\n    \"unsigned short\":   \"ushort\",\r\n    \"unsigned byte\":    \"ubyte\",\r\n\r\n    \"long\":             \"int\",\r\n\t\r\n    \"ushort le\":        \"ushort_le\",\r\n    \"uint le\":          \"uint_le\",\r\n\r\n\t\"playeritem\":       [\"playeritem\"],\r\n\r\n\t\"playeritemedit\":   [\"struct\",\r\n\t\t[\"$type\",\"ubyte\"],\r\n\t\t[\"model\",[\"opt\",[\"$type\",0,\"bitflag\"],[\"array\",[\"itemvar\",\"modelcount\"],\"varuint\"]]],\r\n\t\t[\"flag2\",[\"opt\",[\"$type\",1,\"bitflag\"],\"true\"]],\r\n\t\t[\"color\",[\"opt\",[\"$type\",2,\"bitflag\"],[\"struct\",\r\n\t\t\t[\"$coltype\",\"ushort\"],\r\n\t\t\t[\"col2\",[\"opt\",[\"$coltype\",12816],[\"array\",[\"itemvar\",\"colorcount\"],\"ushort\"]]],\r\n\t\t\t[\"col4\",[\"opt\",[\"$coltype\",8719],[\"array\",4,[\"tuple\",\"ushort\",\"ushort\"]]]]\r\n\t\t]]],\r\n\t\t[\"material\",[\"opt\",[\"$type\",3,\"bitflag\"],[\"struct\",\r\n\t\t\t[\"header\",\"ubyte\"],\r\n\t\t\t[\"materials\",[\"array\",[\"itemvar\",\"matcount\"],\"ushort\"]]\r\n\t\t]]]\r\n\t],\r\n\t\"modelmorphs\":      [\"struct\",\r\n\t\t[\"unk0\",\"ushort\"],\r\n\t\t[\"varbit\",[\"match\",\"buildnr\",{\">=950\":\"utribyte\",\">=0\":\"ushort\"}],\"varbit\"],\r\n\t\t[\"varp\",\"ushort\",\"var_player\"],\r\n\t\t[\"$flags\",\"ubyte\"],\r\n\t\t[\"multimodel\",[\"opt\",\"$flags&1\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"models\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"model\",\"varuint\",\"model\"],\r\n\t\t\t\t[\"extracount\",\"ubyte\"],\r\n\t\t\t\t[\"extra1\",[\"opt\",\"extracount>=1\",\"ubyte\"]],\r\n\t\t\t\t[\"extra2\",[\"opt\",\"extracount>=2\",\"ubyte\"]],\r\n\t\t\t\t[\"extra3\",[\"opt\",\"extracount>=3\",\"ubyte\"]]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiheadmodel\",[\"opt\",\"$flags&2\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"models\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"model\",\"varuint\",\"model\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiretex\",[\"opt\",\"$flags&4\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"ushort\",\"material\"],\r\n\t\t\t\t[\"unk4\",\"ushort\",\"material\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multirecol\",[\"opt\",\"$flags&8\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"ushort\",\"color\"],\r\n\t\t\t\t[\"unk4\",\"ushort\",\"color\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiretint\",[\"opt\",\"$flags&16\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"uint\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"default\",\"ushort\"]\r\n\t],\r\n\r\n\t\"ubyte\":            \"unsigned byte\",\r\n\t\"ushort\":           \"unsigned short\",\r\n\t\"uint\":             \"unsigned int\",\r\n\t\"varushort\":        \"variable unsigned short\",\r\n\t\"varuint\":          \"variable unsigned int\",\r\n\t\"varshort\":         \"variable short\",\r\n\t\"varint\":           \"variable int\",\r\n\r\n    \"unsigned tribyte\": \"utribyte\",\r\n\t\r\n    \"tailed unsigned short\":  [\"tailed varushort\"],\r\n\r\n    \"boolean\":          \"bool\",\r\n\r\n    //obsolete backward compat\r\n    \"true\":             true,\r\n    \"false\":            false,\r\n    \"0\":                0,\r\n    \"1\":                1,\r\n    \"-1\":               -1,\r\n    \"null\":             null,\r\n\r\n\t\"extrasmap\":        [\"typed\",[ \"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"$type\",\"unsigned byte\"],\r\n\t\t[\"prop\",\"unsigned tribyte\"],\r\n\t\t[\"intvalue\",[\"opt\",[\"$type\",0],\"int\"]],\r\n\t\t[\"stringvalue\",[\"opt\",[\"$type\",1],\"string\"]]\r\n\t]],\"paramtable\"],\r\n\r\n\t\"buildnr\":          [\"buildnr\"],//needs to be in array to get invoked as function\r\n\r\n\t\"item_modelid\":     [\"match\",\"buildnr\",{\">=670\":\"varuint\",\">=0\":\"ushort\"}],\r\n\t\"animid\":           [\"match\",\"buildnr\",{\">=670\":\"varnullint\",\">=0\":\"ushort\"}],\r\n\r\n\t\"scriptbinding\":    [\"typed\",[\"array\",\"ubyte\",[\"match\",\"ubyte\",{\"0\":\"int\",\"1\":\"string\"}]],\"clientscriptbinding\"]\r\n}";
+module.exports = "{\r\n    \"variable unsigned long\":   \"varuint\",\r\n    \"variable unsigned int\":    \"varuint\",\r\n    \"variable unsigned short\":  \"varushort\",\r\n    \"unsigned variable long\":   \"varuint\",\r\n    \"unsigned variable int\":    \"varuint\",\r\n    \"unsigned variable short\":  \"varushort\",\r\n\r\n    \"variable long\":    \"varint\",\r\n    \"variable int\":     \"varint\",\r\n    \"variable short\":   \"varshort\",\r\n\r\n    \"unsigned long\":    \"uint\",\r\n    \"unsigned int\":     \"uint\",\r\n    \"unsigned short\":   \"ushort\",\r\n    \"unsigned byte\":    \"ubyte\",\r\n\r\n    \"long\":             \"int\",\r\n\t\r\n    \"ushort le\":        \"ushort_le\",\r\n    \"uint le\":          \"uint_le\",\r\n\r\n\t\"playeritem\":       [\"playeritem\"],\r\n\r\n\t\"playeritemedit\":   [\"struct\",\r\n\t\t[\"$type\",\"ubyte\"],\r\n\t\t[\"model\",[\"opt\",[\"$type\",0,\"bitflag\"],[\"array\",[\"itemvar\",\"modelcount\"],\"varuint\"]]],\r\n\t\t[\"flag2\",[\"opt\",[\"$type\",1,\"bitflag\"],\"true\"]],\r\n\t\t[\"color\",[\"opt\",[\"$type\",2,\"bitflag\"],[\"struct\",\r\n\t\t\t[\"$coltype\",\"ushort\"],\r\n\t\t\t[\"col2\",[\"opt\",[\"$coltype\",12816],[\"array\",[\"itemvar\",\"colorcount\"],\"ushort\"]]],\r\n\t\t\t[\"col4\",[\"opt\",[\"$coltype\",8719],[\"array\",4,[\"tuple\",\"ushort\",\"ushort\"]]]]\r\n\t\t]]],\r\n\t\t[\"material\",[\"opt\",[\"$type\",3,\"bitflag\"],[\"struct\",\r\n\t\t\t[\"header\",\"ubyte\"],\r\n\t\t\t[\"materials\",[\"array\",[\"itemvar\",\"matcount\"],\"ushort\"]]\r\n\t\t]]]\r\n\t],\r\n\t\"modelmorphs\":      [\"struct\",\r\n\t\t[\"unk0\",\"ushort\"],\r\n\t\t[\"varbit\",[\"match\",\"buildnr\",{\">=950\":\"utribyte\",\">=0\":\"ushort\"}],\"varbit\"],\r\n\t\t[\"varp\",\"ushort\",\"var_player\"],\r\n\t\t[\"$flags\",\"ubyte\"],\r\n\t\t[\"multimodel\",[\"opt\",\"$flags&1\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"models\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"model\",\"varuint\",\"model\"],\r\n\t\t\t\t[\"extracount\",\"ubyte\"],\r\n\t\t\t\t[\"extra1\",[\"opt\",\"extracount>=1\",\"ubyte\"]],\r\n\t\t\t\t[\"extra2\",[\"opt\",\"extracount>=2\",\"ubyte\"]],\r\n\t\t\t\t[\"extra3\",[\"opt\",\"extracount>=3\",\"ubyte\"]]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiheadmodel\",[\"opt\",\"$flags&2\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"models\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"model\",\"varuint\",\"model\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiretex\",[\"opt\",\"$flags&4\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"ushort\",\"material\"],\r\n\t\t\t\t[\"unk4\",\"ushort\",\"material\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multirecol\",[\"opt\",\"$flags&8\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"ushort\",\"color\"],\r\n\t\t\t\t[\"unk4\",\"ushort\",\"color\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"multiretint\",[\"opt\",\"$flags&16\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t[\"value\",\"ubyte\"],\r\n\t\t\t[\"entries\",[\"array\",\"ubyte\",[\"struct\",\r\n\t\t\t\t[\"unk1\",\"ushort\"],\r\n\t\t\t\t[\"unk2\",\"ushort\"],\r\n\t\t\t\t[\"unk3\",\"uint\"]\r\n\t\t\t]]]\r\n\t\t]]]],\r\n\t\t[\"default\",\"ushort\"]\r\n\t],\r\n\r\n\t\"ubyte\":            \"unsigned byte\",\r\n\t\"ushort\":           \"unsigned short\",\r\n\t\"uint\":             \"unsigned int\",\r\n\t\"varushort\":        \"variable unsigned short\",\r\n\t\"varuint\":          \"variable unsigned int\",\r\n\t\"varshort\":         \"variable short\",\r\n\t\"varint\":           \"variable int\",\r\n\r\n    \"unsigned tribyte\": \"utribyte\",\r\n\t\r\n    \"tailed unsigned short\":  [\"tailed varushort\"],\r\n\r\n    \"boolean\":          \"bool\",\r\n\r\n    //obsolete backward compat\r\n    \"true\":             true,\r\n    \"false\":            false,\r\n    \"0\":                0,\r\n    \"1\":                1,\r\n    \"-1\":               -1,\r\n    \"null\":             null,\r\n\r\n\t\"extrasmap\":        [\"typed\",[ \"array\",\"ubyte\",[\"struct\",\r\n\t\t[\"$type\",\"unsigned byte\"],\r\n\t\t[\"prop\",\"unsigned tribyte\"],\r\n\t\t[\"intvalue\",[\"opt\",[\"$type\",0],\"int\"]],\r\n\t\t[\"stringvalue\",[\"opt\",[\"$type\",1],\"string\"]]\r\n\t]],\"paramtable\"],\r\n\r\n\t\"buildnr\":          [\"buildnr\"],//needs to be in array to get invoked as function\r\n\r\n\t\"item_modelid\":     [\"match\",\"buildnr\",{\">=670\":\"varuint\",\">=0\":\"ushort\"}],\r\n\t\"animid\":           [\"match\",\"buildnr\",{\">=670\":\"varuint\",\">=0\":\"ushort\"}],\r\n\r\n\t\"scriptbinding\":    [\"typed\",[\"array\",\"ubyte\",[\"match\",\"ubyte\",{\"0\":\"int\",\"1\":\"string\"}]],\"clientscriptbinding\"]\r\n}";
 
 /***/ },
 
@@ -182848,7 +182898,7 @@ function bzip2decompress(data) {
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.u = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return "generated/" + {"vendors-node_modules_sqlite_org_sqlite-wasm_dist_node_mjs":"7464ef0413ff8d3c7996","src_libs_sqlite3worker_ts-src_libs_sqlite3wrap_ts-node_module":"d0e2fe417acbd1af976c"}[chunkId] + ".js";
+/******/ 			return "generated/" + {"vendors-node_modules_sqlite_org_sqlite-wasm_dist_node_mjs":"7464ef0413ff8d3c7996","src_libs_sqlite3worker_ts-src_libs_sqlite3wrap_ts-node_module":"3d7a2caca41129129236"}[chunkId] + ".js";
 /******/ 		};
 /******/ 	})();
 /******/ 	
@@ -182948,19 +182998,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   unload: () => (/* binding */ unload)
 /* harmony export */ });
 /* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ "./node_modules/react/jsx-dev-runtime.js");
-/* harmony import */ var _threejsrender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./threejsrender */ "./src/viewer/threejsrender.ts");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react_dom_client__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-dom/client */ "./node_modules/react-dom/client.js");
-/* harmony import */ var _scenenodes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./scenenodes */ "./src/viewer/scenenodes.tsx");
-/* harmony import */ var _maincomponents__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./maincomponents */ "./src/viewer/maincomponents.tsx");
-/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
-/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _consoletools__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../consoletools */ "./src/consoletools.ts");
-/* harmony import */ var _commoncontrols__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./commoncontrols */ "./src/viewer/commoncontrols.tsx");
-/* harmony import */ var _viewers_fileviewer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./viewers/fileviewer */ "./src/viewer/viewers/fileviewer.tsx");
-/* harmony import */ var _tabs_browse__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./tabs/browse */ "./src/viewer/tabs/browse.tsx");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils */ "./src/utils.ts");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_dom_client__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-dom/client */ "./node_modules/react-dom/client.js");
+/* harmony import */ var _scenenodes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./scenenodes */ "./src/viewer/scenenodes.tsx");
+/* harmony import */ var _maincomponents__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./maincomponents */ "./src/viewer/maincomponents.tsx");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _consoletools__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../consoletools */ "./src/consoletools.ts");
+/* harmony import */ var _commoncontrols__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./commoncontrols */ "./src/viewer/commoncontrols.tsx");
+/* harmony import */ var _viewers_fileviewer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./viewers/fileviewer */ "./src/viewer/viewers/fileviewer.tsx");
+/* harmony import */ var _tabs_browse__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./tabs/browse */ "./src/viewer/tabs/browse.tsx");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../utils */ "./src/utils.ts");
+/* harmony import */ var electron_renderer__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! electron/renderer */ "electron/renderer");
+/* harmony import */ var electron_renderer__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(electron_renderer__WEBPACK_IMPORTED_MODULE_11__);
 
 
 
@@ -182973,31 +183024,42 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-(0,_consoletools__WEBPACK_IMPORTED_MODULE_7__.exposeDebugToolsInGlobal)();
+(0,_consoletools__WEBPACK_IMPORTED_MODULE_6__.exposeDebugToolsInGlobal)();
 function unload(obj) {
     obj.root.unmount();
     obj.ctx.close();
     globalThis.uicontext = null;
 }
 function start(rootelement, serviceworker) {
-    window.addEventListener("keydown", (e)=>{
-        if (e.key == "F5") {
-            document.location.reload();
-        }
-    // if (e.key == "F12") { electron.remote.getCurrentWebContents().toggleDevTools(); }
-    });
-    let ctx = new _maincomponents__WEBPACK_IMPORTED_MODULE_5__.UIContext(rootelement, serviceworker ?? false);
-    let root = react_dom_client__WEBPACK_IMPORTED_MODULE_3__.createRoot(rootelement);
-    root.render(/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_5__.UIRootContext.Provider, {
+    if (electron_renderer__WEBPACK_IMPORTED_MODULE_11__) {
+        // electron doesn't bind these
+        window.addEventListener("keydown", (e)=>{
+            if (e.altKey && e.key == "ArrowLeft") {
+                navigation.back();
+            }
+            if (e.altKey && e.key == "ArrowRight") {
+                navigation.forward();
+            }
+            if (e.key == "F5") {
+                navigation.reload();
+            }
+            if (e.key == "F12") {
+                electron_renderer__WEBPACK_IMPORTED_MODULE_11__.ipcRenderer.invoke("toggledevtools");
+            }
+        });
+    }
+    let ctx = new _maincomponents__WEBPACK_IMPORTED_MODULE_4__.UIContext(rootelement, serviceworker ?? false);
+    let root = react_dom_client__WEBPACK_IMPORTED_MODULE_2__.createRoot(rootelement);
+    root.render(/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_4__.UIRootContext.Provider, {
         value: ctx,
         children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(App, {}, void 0, false, {
             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-            lineNumber: 33,
+            lineNumber: 38,
             columnNumber: 4
         }, this)
     }, void 0, false, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-        lineNumber: 32,
+        lineNumber: 37,
         columnNumber: 3
     }, this));
     globalThis.uicontext = ctx;
@@ -183007,19 +183069,20 @@ function start(rootelement, serviceworker) {
     };
 }
 function App(p) {
-    let ctx = react__WEBPACK_IMPORTED_MODULE_2__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_5__.UIRootContext);
-    let initCnv = react__WEBPACK_IMPORTED_MODULE_2__.useCallback((cnv)=>{
-        ctx.setRenderer(cnv ? new _threejsrender__WEBPACK_IMPORTED_MODULE_1__.ThreeJsRenderer(cnv) : null);
-    }, []);
-    let redraw = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_8__.useForceUpdate)();
-    react__WEBPACK_IMPORTED_MODULE_2__.useEffect(()=>{
+    let ctx = react__WEBPACK_IMPORTED_MODULE_1__.useContext(_maincomponents__WEBPACK_IMPORTED_MODULE_4__.UIRootContext);
+    let redraw = (0,_commoncontrols__WEBPACK_IMPORTED_MODULE_7__.useForceUpdate)();
+    react__WEBPACK_IMPORTED_MODULE_1__.useEffect(()=>{
+        let resize = ()=>{
+            redraw();
+            ctx.renderer.forceFrame();
+        };
         ctx.on("statechange", redraw);
         ctx.on("showTab", redraw);
-        window.addEventListener("resize", redraw);
+        window.addEventListener("resize", resize);
         return ()=>{
             ctx.off("statechange", redraw);
             ctx.off("showTab", redraw);
-            window.removeEventListener("resize", redraw);
+            window.removeEventListener("resize", resize);
         };
     }, [
         ctx
@@ -183028,30 +183091,28 @@ function App(p) {
     let vertical = width < 550;
     let visibletab = ctx.source && ctx.activeTabIndex != -1 ? ctx.openedTabs[ctx.activeTabIndex] : null;
     let cachemeta = ctx.source?.getCacheMeta();
-    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_5__.UIEngineContext.Provider, {
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_4__.UIEngineContext.Provider, {
         value: ctx.renderable,
         children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
-            className: classnames__WEBPACK_IMPORTED_MODULE_6___default()("mv-root", "mv-style", {
+            className: classnames__WEBPACK_IMPORTED_MODULE_5___default()("mv-root", "mv-style", {
                 "mv-root--vertical": vertical
             }),
             children: [
-                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("canvas", {
+                visibletab ? null : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_commoncontrols__WEBPACK_IMPORTED_MODULE_7__.DomWrap, {
+                    containerref: ctx.renderer.forceFrame,
                     className: "mv-canvas",
-                    ref: initCnv,
-                    style: {
-                        display: visibletab ? "none" : "block"
-                    }
+                    el: ctx.renderer.canvas
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 70,
-                    columnNumber: 5
+                    lineNumber: 75,
+                    columnNumber: 26
                 }, this),
                 visibletab?.type == "file" && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(FileViewer, {
                     file: visibletab,
                     onSelectFile: ctx.openFile
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 71,
+                    lineNumber: 76,
                     columnNumber: 36
                 }, this),
                 visibletab?.type == "browse" && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(BrowseViewer, {
@@ -183059,19 +183120,19 @@ function App(p) {
                     onSelectFile: ctx.openFile
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 72,
+                    lineNumber: 77,
                     columnNumber: 38
                 }, this),
                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                     className: "mv-sidebar",
                     children: [
-                        !ctx.source && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+                        !ctx.source && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
                             children: [
-                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_5__.CacheSelector, {
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_maincomponents__WEBPACK_IMPORTED_MODULE_4__.CacheSelector, {
                                     onOpen: ctx.openCache
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 76,
+                                    lineNumber: 81,
                                     columnNumber: 8
                                 }, this),
                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -183080,7 +183141,7 @@ function App(p) {
                                     }
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 77,
+                                    lineNumber: 82,
                                     columnNumber: 8
                                 }, this),
                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -183094,7 +183155,7 @@ function App(p) {
                                             children: "RuneApps"
                                         }, void 0, false, {
                                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                            lineNumber: 79,
+                                            lineNumber: 84,
                                             columnNumber: 15
                                         }, this),
                                         " for more info. Source code hosted at ",
@@ -183104,22 +183165,22 @@ function App(p) {
                                             children: "github.com/skillbert/rsmv"
                                         }, void 0, false, {
                                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                            lineNumber: 79,
+                                            lineNumber: 84,
                                             columnNumber: 114
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 78,
+                                    lineNumber: 83,
                                     columnNumber: 8
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                            lineNumber: 75,
+                            lineNumber: 80,
                             columnNumber: 7
                         }, this),
-                        cachemeta && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+                        cachemeta && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
                             children: [
                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("input", {
                                     type: "button",
@@ -183129,40 +183190,40 @@ function App(p) {
                                     title: cachemeta.descr
                                 }, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 85,
+                                    lineNumber: 90,
                                     columnNumber: 8
                                 }, this),
-                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_scenenodes__WEBPACK_IMPORTED_MODULE_4__.RendererControls, {}, void 0, false, {
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_scenenodes__WEBPACK_IMPORTED_MODULE_3__.RendererControls, {}, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 86,
+                                    lineNumber: 91,
                                     columnNumber: 8
                                 }, this),
-                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_scenenodes__WEBPACK_IMPORTED_MODULE_4__.ModelBrowser, {}, void 0, false, {
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_scenenodes__WEBPACK_IMPORTED_MODULE_3__.ModelBrowser, {}, void 0, false, {
                                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                                    lineNumber: 87,
+                                    lineNumber: 92,
                                     columnNumber: 8
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                            lineNumber: 84,
+                            lineNumber: 89,
                             columnNumber: 7
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 73,
+                    lineNumber: 78,
                     columnNumber: 5
                 }, this)
             ]
         }, void 0, true, {
             fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-            lineNumber: 69,
+            lineNumber: 74,
             columnNumber: 4
         }, this)
     }, void 0, false, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-        lineNumber: 68,
+        lineNumber: 73,
         columnNumber: 3
     }, this);
 }
@@ -183180,7 +183241,7 @@ function FileViewer(p) {
                         children: p.file.name
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                        lineNumber: 101,
+                        lineNumber: 106,
                         columnNumber: 5
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
@@ -183188,13 +183249,13 @@ function FileViewer(p) {
                             float: "right",
                             marginLeft: "10px"
                         },
-                        onClick: (e)=>(0,_maincomponents__WEBPACK_IMPORTED_MODULE_5__.downloadBlob)(p.file.name, new _utils__WEBPACK_IMPORTED_MODULE_11__.BlobTS([
+                        onClick: (e)=>(0,_maincomponents__WEBPACK_IMPORTED_MODULE_4__.downloadBlob)(p.file.name, new _utils__WEBPACK_IMPORTED_MODULE_10__.BlobTS([
                                 p.file.data
                             ])),
                         children: "download"
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                        lineNumber: 102,
+                        lineNumber: 107,
                         columnNumber: 5
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
@@ -183206,13 +183267,13 @@ function FileViewer(p) {
                         children: "x"
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                        lineNumber: 103,
+                        lineNumber: 108,
                         columnNumber: 5
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                lineNumber: 100,
+                lineNumber: 105,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -183221,22 +183282,22 @@ function FileViewer(p) {
                     flex: "1",
                     position: "relative"
                 },
-                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_fileviewer__WEBPACK_IMPORTED_MODULE_9__.FileDisplay, {
+                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_viewers_fileviewer__WEBPACK_IMPORTED_MODULE_8__.FileDisplay, {
                     file: p.file
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 106,
+                    lineNumber: 111,
                     columnNumber: 5
                 }, this)
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                lineNumber: 105,
+                lineNumber: 110,
                 columnNumber: 4
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-        lineNumber: 99,
+        lineNumber: 104,
         columnNumber: 3
     }, this);
 }
@@ -183254,7 +183315,7 @@ function BrowseViewer(p) {
                         children: p.browse.id
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                        lineNumber: 117,
+                        lineNumber: 122,
                         columnNumber: 5
                     }, this),
                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
@@ -183266,13 +183327,13 @@ function BrowseViewer(p) {
                         children: "x"
                     }, void 0, false, {
                         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                        lineNumber: 118,
+                        lineNumber: 123,
                         columnNumber: 5
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                lineNumber: 116,
+                lineNumber: 121,
                 columnNumber: 4
             }, this),
             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -183281,22 +183342,22 @@ function BrowseViewer(p) {
                     flex: "1",
                     position: "relative"
                 },
-                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_tabs_browse__WEBPACK_IMPORTED_MODULE_10__.BrowseDisplay, {
+                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_tabs_browse__WEBPACK_IMPORTED_MODULE_9__.BrowseDisplay, {
                     browse: p.browse
                 }, void 0, false, {
                     fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                    lineNumber: 121,
+                    lineNumber: 126,
                     columnNumber: 5
                 }, this)
             }, void 0, false, {
                 fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-                lineNumber: 120,
+                lineNumber: 125,
                 columnNumber: 4
             }, this)
         ]
     }, void 0, true, {
         fileName: "X:\\Temp\\RSWiki\\gitlab\\rsmv\\src\\viewer\\index.tsx",
-        lineNumber: 115,
+        lineNumber: 120,
         columnNumber: 3
     }, this);
 }

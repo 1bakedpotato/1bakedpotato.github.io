@@ -138,6 +138,9 @@ electron_main__WEBPACK_IMPORTED_MODULE_0__.app.whenReady().then(async ()=>{
             defaultPath: startfolder
         });
     });
+    electron_main__WEBPACK_IMPORTED_MODULE_0__.ipcMain.handle("toggledevtools", async (e)=>{
+        index.webContents.toggleDevTools();
+    });
 });
 electron_main__WEBPACK_IMPORTED_MODULE_0__.app.on("window-all-closed", ()=>{
     //prevent shutdown until all scripts are done

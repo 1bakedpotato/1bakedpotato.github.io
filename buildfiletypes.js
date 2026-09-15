@@ -2742,28 +2742,26 @@ const hardcodes = {
             }
         };
     },
-    "flipped varushort": function(args, parent, typedef) {
-        // same as varushort, but flips bytes for some reason
-        // idk why this exists, but its used by dbrows table id field
-        // TODO i remember this existing in skeletal anims as well, merge implementations
+    varushortbias: function() {
         return {
-            read (state) {
-                let byte0 = state.buffer.readUint8(state.scan++);
-                if ((byte0 & 0x80) == 0) {
-                    return byte0;
+            read (s) {
+                let firstByte = s.buffer.readUInt8(s.scan++);
+                if ((firstByte & 0x80) == 0) {
+                    return firstByte - 0x40;
                 }
-                let byte1 = state.buffer.readUint8(state.scan++);
-                return byte1 << 7 | byte0 & 0x7f;
+                let secondByte = s.buffer.readUInt8(s.scan++);
+                return ((firstByte & 0x7f) << 8 | secondByte) - 0x4000;
             },
-            write (state, v) {
+            write (s, v) {
                 if (typeof v != "number") {
                     throw new Error("number expected");
                 }
-                if (v < 0x80) {
-                    state.buffer.writeUint8(v, state.scan++);
+                if (v < 0x40 && v >= -0x40) {
+                    s.buffer.writeUInt8(v + 0x40, s.scan);
+                    s.scan += 1;
                 } else {
-                    state.buffer.writeUint8(v & 0x7f | 0x80, state.scan++);
-                    state.buffer.writeUint8(v >> 7, state.scan++);
+                    s.buffer.writeInt16BE((v | 0x8000) + 0x4000, s.scan);
+                    s.scan += 2;
                 }
             },
             getTypescriptType (indent) {
@@ -3130,36 +3128,6 @@ const numberTypes = {
         min: 0,
         max: 2 ** 31 - 1
     },
-    varnullint: {
-        read (s) {
-            let firstWord = s.buffer.readUInt16BE(s.scan);
-            s.scan += 2;
-            if (firstWord == 0x7fff) {
-                return -1;
-            } else if ((firstWord & 0x8000) == 0) {
-                return firstWord;
-            } else {
-                let secondWord = s.buffer.readUInt16BE(s.scan);
-                s.scan += 2;
-                return (firstWord & 0x7fff) << 16 | secondWord;
-            }
-        },
-        write (s, v) {
-            if (v == -1) {
-                s.buffer.writeUint16BE(0x7fff, s.scan);
-                s.scan += 2;
-            } else if (v < 0x8000) {
-                s.buffer.writeUInt16BE(v, s.scan);
-                s.scan += 2;
-            } else {
-                //unsigned right shift to cast to uint32 again
-                s.buffer.writeUint32BE((v | 0x80000000) >>> 0, s.scan);
-                s.scan += 4;
-            }
-        },
-        min: -1,
-        max: 2 ** 31 - 1
-    },
     varint: {
         read (s) {
             let firstWord = s.buffer.readUInt16BE(s.scan);
@@ -3184,6 +3152,38 @@ const numberTypes = {
         },
         min: -(2 ** 30),
         max: 2 ** 30 - 1
+    },
+    // newer encoding that can fit any uint and stores it in 1-5 bytes
+    denseuint: {
+        read (state) {
+            let value = 0;
+            let bitcount = 0;
+            while(true){
+                let byte = state.buffer.readUint8(state.scan++);
+                value |= (byte & 0x7f) << bitcount;
+                bitcount += 7;
+                if ((byte & 0x80) == 0) {
+                    break;
+                }
+            }
+            return value;
+        },
+        write (state, v) {
+            if (typeof v != "number") {
+                throw new Error("number expected");
+            }
+            let value = v;
+            while(value){
+                let byte = value & 0x7f;
+                value >>= 7;
+                if (value) {
+                    byte |= 0x80;
+                }
+                state.buffer.writeUint8(byte, state.scan++);
+            }
+        },
+        min: 0,
+        max: 2 ** 32 - 1
     }
 };
 const parserPrimitives = {
